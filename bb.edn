@@ -4,35 +4,36 @@
         :override-builtin true
         :task (do
                 (println "Starting REPL with dev dependencies...")
-                (apply shell
-                       ["clojure" "-A:dev:repl"]))}
+                (shell ["lein" "repl"]))}
+
+  check-opencl-config {:doc "Check openCL config"
+                       :task (do
+                               (println "Checking openCL config... (run `build/opencl.sh` if necessary)")
+                               (shell "lein" "run" "-m" "check-opencl-config"))}
 
   build-doc {:doc "Build clerk documentation"
              :task (do
                      (println "Building Clerk notebooks...")
-                     (apply shell
-                            ["clojure" "-X:dev:build-doc"]))}
+                     (shell ["lein" "build-doc"]))}
 
   serve-doc {:doc "Serve documentation"
              :task (do
                      (println "Serving document on port 7777...")
-                     (apply shell
-                            ["clojure" "-X:serve-doc"]))}
+                     (shell ["lein" "serve-doc"]))}
 
   watch-doc {:doc "Watch & serve Clerk notebooks"
              :task (do
                      (println "Watch Clerk notebooks...")
-                     (apply shell
-                            ["clojure" "-X:dev:watch-doc"]))}
+                     (shell ["lein" "watch-doc"]))}
 
   example {:doc "Run an example script"
            :task (let [[example] *command-line-args*]
                    (do
                      (println "Running" example "example")
-                     (apply shell ["clojure" "-M:dev" "-m" (str "rt-clj." example "-example")])
+                     (apply shell ["lein" "run" "-m" (str "rt-clj." example "-example")])
                      (shell "./build/convert_ppm_images.sh")))}
 
   test {:doc "Run tests"
         :task (do
                 (println "Running tests with args:" *command-line-args*)
-                (apply shell ["clojure" "-M:dev:test"] *command-line-args*))}}}
+                (apply shell ["lein" "test"] *command-line-args*))}}}

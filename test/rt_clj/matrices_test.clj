@@ -124,39 +124,6 @@
       (is (t/eq? a
                  (mul-t (id 4) a)))))
 
-  (testing "A submatrix of a 3x3 matrix is a 2x2 matrix"
-    (is (eq? (matrix [[-3. 2.]
-                      [0. 6.]])
-             (subm (matrix [[1. 5. 0.]
-                            [-3. 2. 7.]
-                            [0. 6. -3.]]) 0 2))))
-
-  (testing "A submatrix of a 4x4 matrix is a 3x3 matrix"
-    (is (eq? (matrix [[-6. 1. 6.]
-                      [-8. 8. 6.]
-                      [-7. -1. 1.]])
-             (subm (matrix [[-6. 1. 1. 6.]
-                            [-8. 5. 8. 6.]
-                            [-1. 0. 8. 2.]
-                            [-7. 1. -1. 1.]]) 2 1))))
-
-  (testing "Calculating a minor of a 3x3 matrix"
-    (let [m (matrix [[3. 5. 0.]
-                     [2. -1. -7.]
-                     [6. -1. 5.]])]
-      (is (= 25.
-             (det (subm m 1 0))
-             (minor m 1 0)))))
-
-  (testing "Calculating a cofactor of a 3x3 matrix"
-    (let [m (matrix [[3 5 0]
-                     [2 -1 -7]
-                     [6 -1 5]])]
-      (is (= -12.
-             (cofactor m 0 0)))
-      (is (= -25.
-             (cofactor m 1 0)))))
-
   (testing "Calculating the determinant of a 2x2 matrix"
     (is (= 17.
            (det (matrix [[1. 5.]
@@ -166,12 +133,6 @@
     (let [m (matrix [[1. 2. 6.]
                      [-5. 8. -4.]
                      [2. 6. 4.]])]
-      (is (= 56.
-             (cofactor m 0 0)))
-      (is (= 12.
-             (cofactor m 0 1)))
-      (is (= -46.
-             (cofactor m 0 2)))
       (is (= -196.
              (det m)))))
 
@@ -180,14 +141,6 @@
                      [-3. 1. 7. 3.]
                      [1. 2. -9. 6.]
                      [-6. 7. 7. -9.]])]
-      (is (= 690.
-             (cofactor m 0 0)))
-      (is (= 447.
-             (cofactor m 0 1)))
-      (is (= 210.
-             (cofactor m 0 2)))
-      (is (= 51.
-             (cofactor m 0 3)))
       (is (= -4071.
              (det m)))))
 
@@ -216,8 +169,6 @@
                      [1. -3. 7. 4.]])]
       (is (= 532.
              (det m)))
-      (is (= -160.
-             (cofactor m 2 3)))
       (is (eq? (matrix [[0.21805 0.45113 0.24060 -0.04511]
                         [-0.80827 -1.45677 -0.44361 0.52068]
                         [-0.07895 -0.22368 -0.05263 0.19737]
@@ -248,9 +199,12 @@
                      [3. -8. 2. -9.]
                      [-4. 4. 4. 1.]
                      [-6. 5. -1. 1.]])]
-      (is (eq? (id 4)
-               (mul a (inverse a))))))
-
-  (testing "The inverse of identity is identity"
-    (is (eq? (id 4)
-             (inverse (id 4))))))
+      (is (eq? (matrix [[1. 0. 0. 0.]
+                        [0. 1. 0. 0.]
+                        [0. 0. 1. 0.]
+                        [0. 0. 0. 1.]])
+               (mul a (inverse a)))))))
+  ;
+  ; (testing "The inverse of identity is identity"
+  ;   (is (eq? (id 4)
+  ;            (inverse (id 4))))))

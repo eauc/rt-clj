@@ -5,7 +5,8 @@
    :nextjournal.clerk/toc true}
   (:require [rt-clj.intersections :as i]
             [rt-clj.shapes :as sh]
-            [rt-clj.tuples :as t]))
+            [rt-clj.tuples :as t]
+            [uncomplicate.neanderthal.core :as nc]))
 
 ; ## Bounds
 
@@ -22,9 +23,8 @@
 
 ; The first intersection distance is always the smallest.
 
-(defn- local-intersect [s {:keys [^"[D" origin ^"[D" direction]}]
-  (let [s->ra (aclone origin)
-        _ (aset s->ra 3 0.)
+(defn- local-intersect [s {:keys [origin direction]}]
+  (let [s->ra (t/sub origin t/origin)
         two-a (* (t/dot direction direction) 2.)
         b (* 2. (t/dot direction s->ra))
         c (- (t/dot s->ra s->ra) 1.)
@@ -42,9 +42,9 @@
 
 ; Normal is easy to calculate since the sphere is always centered at the origin.
 
-(defn- local-normal [_ ^"[D" object-p _]
-  (let [n (aclone object-p)]
-    (aset n 3 0.)
+(defn- local-normal [_ object-p _]
+  (let [n (nc/copy object-p)]
+    (nc/entry! n 3 0.)
     n))
 
 ; ## Creation

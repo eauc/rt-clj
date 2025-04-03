@@ -66,8 +66,8 @@
                       (tu/vector 0. 0. 1.))
         resolution 4
         cam (cm/camera (* resolution 150) (* resolution 100) (/ Math/PI 3) view)]
-        ; cam-crit (cm/camera 1 1 (/ Math/PI 3) view)]
-    ; (println "Start profiling...")
+    ;     cam-crit (cm/camera 1 1 (/ Math/PI 3) view)]
+    ; (println "Benchmarking starting...")
     ; (criterium/quick-bench
     ;  (clojure.string/join "\n" (ca/ppm-rows (cm/render cam-crit world))))
     (spit

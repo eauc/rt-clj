@@ -5,7 +5,8 @@
    :nextjournal.clerk/toc true}
   (:import java.lang.Math)
   (:require [clojure.string :as st]
-            [rt-clj.colors :as c]))
+            [rt-clj.colors :as c]
+            [uncomplicate.neanderthal.core :as nc]))
 
 ; ## Creation
 
@@ -69,8 +70,8 @@
 (defn ppm-color [^"[D" col]
   (st/join
    " "
-   (for [k (range (dec (alength col)))]
-     (Math/round (+ 0.49 (* 255. (ppm-clamp (aget col k))))))))
+   (for [k (range 3)]
+     (Math/round (+ 0.49 (* 255. (ppm-clamp (nc/entry col k))))))))
 
 (defn ppm-data-row [row]
   (let [raw (st/join " " (map ppm-color row))]

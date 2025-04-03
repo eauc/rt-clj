@@ -5,7 +5,8 @@
    :nextjournal.clerk/toc true}
   (:require [rt-clj.rays :as r]
             [rt-clj.shapes :as sh]
-            [rt-clj.tuples :as t]))
+            [rt-clj.tuples :as t]
+            [uncomplicate.neanderthal.core :as nc]))
 
 ; ## Creation
 
@@ -20,18 +21,6 @@
 ; ## Hit
 
 ; We can find a hit in a list of intersections. It's always the lowest non-negative intersection.
-
-(comment
-  (defn first-after [is after]
-    (let [c (count is)]
-      (loop [k 0
-             f-after nil]
-        (if (= k c)
-          f-after
-          (let [i (nth is k)]
-            (if (< after (:t i) (get f-after :t t/infinity))
-              (recur (+ k 1) i)
-              (recur (+ k 1) f-after))))))))
 
 (defn hit [is]
   (first (filter #(< 0. ^double (:t %)) is)))
@@ -74,20 +63,14 @@
 ; To avoid acne syndrome, the computation should slightly displace the hit points (by epsilon) toward the outside/inside of the object.
 
 (defn prepare-hit [hit ray ints]
-  (let [^"[D" point (r/pos ray (:t hit))
+  (let [point (r/pos ray (:t hit))
         normalv' (sh/normal (:object hit) point hit)
         eyev (t/neg (:direction ray))
         inside? (< (t/dot normalv' eyev) 0)
-        ^"[D" normalv (if inside? (t/neg normalv') normalv')
+        normalv (if inside? (t/neg normalv') normalv')
         n (refractive-indices hit ints)]
-    {:point (let [p (aclone point)]
-              (dotimes [k (alength p)]
-                (aset p k (+ (aget point k) (* (double t/epsilon) (aget normalv k)))))
-              p)
-     :under-point (let [p (aclone point)]
-                    (dotimes [k (alength p)]
-                      (aset p k (- (aget point k) (* (double t/epsilon) (aget normalv k)))))
-                    p)
+    {:point (nc/axpy t/epsilon normalv point)
+     :under-point (nc/axpy (- 0. t/epsilon) normalv point)
      :eyev eyev
      :n n
      :normalv normalv

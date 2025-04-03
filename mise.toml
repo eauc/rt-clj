@@ -1,4 +1,5 @@
 [tools]
 babashka = "latest"
 clojure = "1.12"
-java = "latest"
+java = "24"
+leiningen = "latest"

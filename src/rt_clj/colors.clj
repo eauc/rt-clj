@@ -3,7 +3,8 @@
 (ns rt-clj.colors
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
-  (:require [rt-clj.tuples :as t]))
+  (:require [rt-clj.tuples :as t]
+            [uncomplicate.neanderthal.vect-math :as nv]))
 
 ; ## Creation
 
@@ -31,9 +32,5 @@
 
 (def mul t/mul)
 
-(defn dot [^"[D" v ^"[D" w]
-  (let [r (aclone v)]
-    (dotimes [i 3]
-      (aset r i (* (aget v i) (aget w i))))
-    r))
-
+(defn dot [v w]
+  (nv/mul v w))
