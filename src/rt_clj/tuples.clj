@@ -3,7 +3,6 @@
 (ns rt-clj.tuples
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
-  (:import java.lang.Math)
   (:refer-clojure :exclude [vector vector?]))
 
 ; ## Creation
@@ -14,7 +13,7 @@
 
 (defn tuple
   ([x y z w]
-   (into-array Double/TYPE [x y z w]))
+   (double-array [x y z w]))
   ([x y z]
    (tuple x y z 0.)))
 
