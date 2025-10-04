@@ -1,13 +1,6 @@
 {:paths ["src" "test"]
  :tasks
- {repl {:doc "Start a REPL with dev dependencies"
-        :override-builtin true
-        :task (do
-                (println "Starting REPL with dev dependencies...")
-                (apply shell
-                       ["clojure" "-A:dev:repl"]))}
-
-  build-doc {:doc "Build clerk documentation"
+ {build-doc {:doc "Build clerk documentation"
              :task (do
                      (println "Building Clerk notebooks...")
                      (apply shell
@@ -29,8 +22,13 @@
            :task (let [[example] *command-line-args*]
                    (do
                      (println "Running" example "example")
-                     (apply shell ["clojure" "-M:dev" "-m" (str "rt-clj." example "-example")])
-                     (shell "./build/convert_ppm_images.sh")))}
+                     (apply shell ["clojure" "-M:dev" "-m" (str "rt-clj." example "-example")])))}
+
+  repl {:doc "Start a REPL with dev dependencies"
+        :override-builtin true
+        :task (do
+                (println "Starting REPL with dev deps")
+                (apply shell ["clojure" "-M:dev:repl"]))}
 
   test {:doc "Run tests"
         :task (do

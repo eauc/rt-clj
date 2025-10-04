@@ -23,3 +23,6 @@
 (defn serve-profiler
   []
   (prof/serve-ui 8080))
+
+(comment
+  (init))
