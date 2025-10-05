@@ -77,7 +77,10 @@
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))
         resolution 4
-        cam (cm/camera (* resolution 150) (* resolution 100) (/ Math/PI 3) view)]
+        cam (cm/camera {:hsize (* resolution 150)
+                        :vsize (* resolution 100)
+                        :fov (/ Math/PI 3)
+                        :transform view})]
     (spit "./examples/img/reflection-example.ppm"
           (clojure.string/join "\n" (ca/ppm-rows (cm/render cam world)))))
 
@@ -118,7 +121,10 @@
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))
         resolution 4
-        cam (cm/camera (* resolution 150) (* resolution 100) (/ Math/PI 3) view)]
+        cam (cm/camera {:hsize (* resolution 150)
+                        :vsize (* resolution 100)
+                        :fov (/ Math/PI 3)
+                        :transform view})]
         ; cam-crit (cm/camera 1 1 (/ Math/PI 3) view)]
     ; (println "Start profiling...")
     ; (criterium/quick-bench
@@ -151,7 +157,10 @@
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))
         resolution 4
-        cam (cm/camera (* resolution 150) (* resolution 100) (/ Math/PI 3) view)]
+        cam (cm/camera {:hsize (* resolution 150)
+                        :vsize (* resolution 100)
+                        :fov (/ Math/PI 3)
+                        :transform view})]
         ; cam-crit (cm/camera 1 1 (/ Math/PI 3) view)]
     ; (println "Start profiling...")
     ; (criterium/quick-bench

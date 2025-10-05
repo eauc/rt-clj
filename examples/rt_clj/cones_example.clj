@@ -65,7 +65,10 @@
                       (tu/point 0. 0. -1.5)
                       (tu/vector 0. 0. 1.))
         resolution 4
-        cam (cm/camera (* 150 resolution) (* 100 resolution) (/ Math/PI 3) view)]
+        cam (cm/camera {:hsize (* resolution 150)
+                        :vsize (* resolution 100)
+                        :fov (/ Math/PI 3)
+                        :transform view})]
         ; cam-crit (cm/camera 1 1 (/ Math/PI 3) view)]
     ; (println "Start profiling...")
     ; (criterium/quick-bench

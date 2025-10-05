@@ -6,6 +6,7 @@
   (:import java.lang.Math)
   (:require [clojure.core.reducers :as cr]
             [clj-progress.core :as pg]
+            [rt-clj.colors :as c]
             [rt-clj.matrices :as m]
             [rt-clj.rays :as r]
             [rt-clj.tuples :as t]
@@ -22,23 +23,44 @@
 
 ; We can access the size of each pixels, computed from the greatest of hsize & vsize, and the field of view.
 
+(defrecord Camera
+           [hsize
+            vsize
+            fov
+            default-depth
+            parallel-depth
+            oversampling
+            transform
+            inverse-t
+            half-width
+            half-height
+            pixel-size])
+
 (defn camera
-  ([^long hs ^long vs ^double fov transform]
+  ([{:keys [^long hsize ^long vsize ^double fov transform default-depth parallel-depth oversampling] :as options
+     :or {transform (m/id 4)
+          default-depth 4
+          parallel-depth 0
+          oversampling 1}}]
    (let [half-view (Math/tan (/ fov 2.))
-         aspect (double (/ hs vs))
+         aspect (double (/ hsize vsize))
          half-width (if (>= aspect 1.) half-view (* half-view aspect))
          half-height (if (>= aspect 1.) (/ half-view aspect) half-view)
-         pixel-size (/ (* half-width 2) hs)]
-     {:hsize hs
-      :vsize vs
-      :fov fov
-      :transform transform
-      :inverse-t (m/inverse transform)
-      :half-width half-width
-      :half-height half-height
-      :pixel-size pixel-size}))
-  ([hs vs fov]
-   (camera hs vs fov (m/id 4))))
+         pixel-size (/ (* half-width 2) hsize)]
+     (map->Camera
+      (merge
+       options
+       {:hsize hsize
+        :vsize vsize
+        :fov fov
+        :default-depth default-depth
+        :parallel-depth parallel-depth
+        :oversampling oversampling
+        :transform transform
+        :inverse-t (m/inverse transform)
+        :half-width half-width
+        :half-height half-height
+        :pixel-size pixel-size})))))
 
 ; ## Rays
 
@@ -48,29 +70,45 @@
 ; - the ray's origin is the world origin.
 ; - the ray's direction is the vector from the world-origin to the world-pixel.
 
-(defn pixel-ray [{:keys [^double half-width ^double half-height ^double pixel-size inverse-t]} ^double px ^double py]
-  (let [cam-x (- half-width (* (+ px 0.5) pixel-size))
-        cam-y (- half-height (* (+ py 0.5) pixel-size))
-        world-pixel (m/mul-t inverse-t (t/point cam-x cam-y -1.))
+(defn pixel-rays
+  [{:keys [^double half-width ^double half-height ^double pixel-size inverse-t oversampling]} ^double px ^double py]
+  (let [offset (/ 1. oversampling)
+        start-offset (/ offset 2.)
+        cam-xys (for [i (range oversampling)
+                      j (range oversampling)]
+                  (vector
+                   (- half-width (* (+ px (* i offset) start-offset) pixel-size))
+                   (- half-height (* (+ py (* j offset) start-offset) pixel-size))))
+        world-pixels (mapv (fn [[x y]] (m/mul-t inverse-t (t/point x y -1.)))
+                           cam-xys)
         world-origin (m/mul-t inverse-t t/origin)
-        direction (t/norm (t/sub world-pixel world-origin))]
-    (r/ray world-origin direction)))
+        directions (mapv #(t/norm (t/sub % world-origin)) world-pixels)]
+    (mapv #(r/ray world-origin %) directions)))
 
 ; ## World
 
 ; We can render a world as seen from a camera.
 
-(def default-depth 4)
+(defn- render-pixel
+  [cam world x y]
+  (let [{:keys [default-depth]} cam
+        rs (pixel-rays cam x y)
+        colors (mapv #(w/color world % default-depth) rs)]
+    (c/avg colors)))
+
+(defn- render-line
+  [cam world y]
+  (let [{:keys [hsize]} cam]
+    (mapv #(render-pixel cam world % y) (range hsize))))
 
 (defn render
-  ([{:keys [^long hsize ^long vsize] :as cam}
-    world
-    {:keys [parallel?] :or {parallel? true}}]
-   (let [world (w/prepare world)]
+  ([{:keys [^long vsize parallel-depth] :as cam} world]
+   (let [world (w/prepare world)
+         parallel? (< 0 parallel-depth)]
      (pg/init "Rendering" vsize)
      (let [image (if parallel?
                    (cr/fold
-                    (int (/ vsize 8))
+                    (int (/ vsize parallel-depth))
                     (fn combinef
                       ([] [])
                       ([a b] (concat a b)))
@@ -78,15 +116,11 @@
                       ([] [])
                       ([cs y]
                        (pg/tick)
-                       (conj cs (mapv #(w/color world (pixel-ray cam % y) default-depth)
-                                      (vec (range hsize))))))
+                       (conj cs (render-line cam world y))))
                     (vec (range vsize)))
                    (mapv (fn [y]
                            (pg/tick)
-                           (mapv #(w/color world (pixel-ray cam % y) default-depth)
-                                 (range hsize)))
+                           (render-line cam world y))
                          (range vsize)))]
        (pg/done)
-       image)))
-  ([cam world]
-   (render cam world {})))
+       image))))

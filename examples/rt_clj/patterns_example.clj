@@ -63,11 +63,14 @@
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))
         resolution 4
-        cam (cm/camera (* resolution 150) (* resolution 100) (/ Math/PI 3) view)]
+        cam (cm/camera {:hsize (* resolution 150)
+                        :vsize (* resolution 100)
+                        :fov (/ Math/PI 3)
+                        :transform view})]
     (spit
      "./examples/img/patterns-stripes-example.ppm"
      (clojure.string/join
-      "\n" (ca/ppm-rows (cm/render cam world {:parallel? true})))))
+      "\n" (ca/ppm-rows (cm/render cam world)))))
 
   (let [gradient (pt/gradient
                   (co/color 1. 0. 0.) (co/color 0. 0. 1.)
@@ -85,7 +88,10 @@
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))
         resolution 4
-        cam (cm/camera (* resolution 150) (* resolution 100) (/ Math/PI 3) view)]
+        cam (cm/camera {:hsize (* resolution 150)
+                        :vsize (* resolution 100)
+                        :fov (/ Math/PI 3)
+                        :transform view})]
     (spit "./examples/img/patterns-gradient-example.ppm"
           (clojure.string/join "\n" (ca/ppm-rows (cm/render cam world)))))
 
@@ -104,7 +110,10 @@
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))
         resolution 4
-        cam (cm/camera (* resolution 150) (* resolution 100) (/ Math/PI 3) view)]
+        cam (cm/camera {:hsize (* resolution 150)
+                        :vsize (* resolution 100)
+                        :fov (/ Math/PI 3)
+                        :transform view})]
     (spit "./examples/img/patterns-rings-example.ppm"
           (clojure.string/join "\n" (ca/ppm-rows (cm/render cam world)))))
 
@@ -122,6 +131,9 @@
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))
         resolution 4
-        cam (cm/camera (* resolution 150) (* resolution 100) (/ Math/PI 3) view)]
+        cam (cm/camera {:hsize (* resolution 150)
+                        :vsize (* resolution 100)
+                        :fov (/ Math/PI 3)
+                        :transform view})]
     (spit "./examples/img/patterns-checker-example.ppm"
           (clojure.string/join "\n" (ca/ppm-rows (cm/render cam world))))))
