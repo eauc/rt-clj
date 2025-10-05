@@ -3,7 +3,8 @@
 (ns rt-clj.shapes.spheres
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
-  (:require [rt-clj.intersections :as i]
+  (:require [rt-clj.bounds :as bd]
+            [rt-clj.intersections :as i]
             [rt-clj.shape-protocol :as sh]
             [rt-clj.tuples :as t]))
 
@@ -48,8 +49,9 @@
 (defrecord Sphere []
   sh/Shape
   (local-bounds [_]
-    {:min (t/point -1. -1. -1)
-     :max (t/point 1. 1. 1.)})
+    bd/default)
+  (prepare-bounds [shape]
+    shape)
   (prepare-transform [shape _ _]
     shape)
   (includes? [_ _]

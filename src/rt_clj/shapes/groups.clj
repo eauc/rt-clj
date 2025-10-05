@@ -3,9 +3,9 @@
 (ns rt-clj.shapes.groups
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
-  (:require [rt-clj.object-protocol :as o]
-            [rt-clj.shape-protocol :as sh]
-            [rt-clj.tuples :as t]))
+  (:require [rt-clj.bounds :as bd]
+            [rt-clj.object-protocol :as o]
+            [rt-clj.shape-protocol :as sh]))
 
 ; (defn children-bounds
 ;   [cs]
@@ -32,25 +32,28 @@
 ; It should correctly apply the group and its children transformations.
 
 (defn local-intersect
-  [{:keys [children]} ray]
-  (->> (reduce (fn [ints c] (concat ints (o/intersect c ray))) '() children)
-       (sort-by :t)
-       (into [])))
+  [{:keys [children]} ray {:keys [bounds]}]
+  (if-not (bd/intersect? bounds ray)
+    []
+    (->> (reduce (fn [ints c] (concat ints (o/intersect c ray))) '() children)
+         (sort-by :t)
+         (into []))))
 
 ; ## Creation
 
 (defrecord Group [children]
   sh/Shape
-  (local-bounds [_]
-    (let [e (double t/epsilon)]
-      {:min (t/point (- e) (- e) (- e))
-       :max (t/point e e e)}))
+  (local-bounds [{:keys [children]}]
+    (let [bs (map (fn [{:keys [bounds transform]}] (bd/transform bounds transform)) children)]
+      (bd/merge bs)))
+  (prepare-bounds [{:keys [children] :as shape}]
+    (assoc shape :children (mapv o/prepare-bounds children)))
   (prepare-transform [{:keys [children] :as shape} world->object object->world]
     (assoc shape :children (mapv #(o/prepare-transform % world->object object->world) children)))
   (includes? [{:keys [children]} needle]
     (some #(o/includes? % needle) children))
-  (local-intersect [gr ray _]
-    (local-intersect gr ray))
+  (local-intersect [gr ray object]
+    (local-intersect gr ray object))
   (local-normal [_ _ _]
     (throw (ex-info "We should never call local-normal on a group." {}))))
 

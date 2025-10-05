@@ -3,7 +3,8 @@
 (ns rt-clj.shapes.triangles
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
-  (:require [rt-clj.intersections :as i]
+  (:require [rt-clj.bounds :as bd]
+            [rt-clj.intersections :as i]
             [rt-clj.shape-protocol :as sh]
             [rt-clj.tuples :as t]))
 
@@ -17,8 +18,9 @@
   (let [[^double x1 ^double y1 ^double z1] (project p1)
         [^double x2 ^double y2 ^double z2] (project p2)
         [^double x3 ^double y3 ^double z3] (project p3)]
-    {:min (t/point (min x1 x2 x3) (min y1 y2 y3) (min z1 z2 z3))
-     :max (t/point (max x1 x2 x3) (max y1 y2 y3) (max z1 z2 z3))}))
+    (bd/bounds
+     (t/point (min x1 x2 x3) (min y1 y2 y3) (min z1 z2 z3))
+     (t/point (max x1 x2 x3) (max y1 y2 y3) (max z1 z2 z3)))))
 
 ; ## Intersection
 
@@ -72,6 +74,12 @@
   sh/Shape
   (local-bounds [tri]
     (local-bounds [tri]))
+  (prepare-bounds [shape]
+    shape)
+  (prepare-transform [shape _ _]
+    shape)
+  (includes? [_ _]
+    false)
   (local-intersect [tri ray object]
     (local-intersect tri ray object))
   (local-normal [tri _ _]

@@ -4,7 +4,8 @@
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
   (:import java.lang.Math)
-  (:require [rt-clj.intersections :as i]
+  (:require [rt-clj.bounds :as bd]
+            [rt-clj.intersections :as i]
             [rt-clj.shape-protocol :as sh]
             [rt-clj.tuples :as t]))
 
@@ -14,8 +15,9 @@
   [{:keys [^double minimum ^double maximum]}]
   (let [max-abs (max (Math/abs minimum)
                      (Math/abs maximum))]
-    {:min (t/point (- max-abs) minimum (- max-abs))
-     :max (t/point max-abs maximum max-abs)}))
+    (bd/bounds
+     (t/point (- max-abs) minimum (- max-abs))
+     (t/point max-abs maximum max-abs))))
 
 ; ## Intersections
 
@@ -114,6 +116,8 @@
   sh/Shape
   (local-bounds [cne]
     (local-bounds cne))
+  (prepare-bounds [shape]
+    shape)
   (prepare-transform [shape _ _]
     shape)
   (includes? [_ _]

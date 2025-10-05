@@ -3,7 +3,8 @@
 (ns rt-clj.shapes.csg-shapes
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
-  (:require [rt-clj.object-protocol :as o]
+  (:require [rt-clj.bounds :as bd]
+            [rt-clj.object-protocol :as o]
             [rt-clj.shape-protocol :as sh]))
 
 ; [[file:../samples/csg_spheres_example.png]]
@@ -61,13 +62,13 @@
         (recur rest inl' inr' result')))))
 
 (defn- local-intersect
-  [{:keys [left right] :as shape} ray]
-  (filter-intersections
-   shape
-   (sort-by
-    :t
-    (concat (o/intersect left ray)
-            (o/intersect right ray)))))
+  [{:keys [left right] :as shape} ray {:keys [bounds]}]
+  (if-not (bd/intersect? bounds ray)
+    []
+    (->> (concat (o/intersect left ray)
+                 (o/intersect right ray))
+         (sort-by :t)
+         (filter-intersections shape))))
 
 ; ## Creation
 
@@ -75,8 +76,14 @@
 
 (defrecord CSGShape [operation left right]
   sh/Shape
-  (local-bounds [_]
-    {})
+  (local-bounds [{:keys [left right]}]
+    (let [left-bs (bd/transform (:bounds left) (:transform left))
+          right-bs (bd/transform (:bounds right) (:transform right))]
+      (bd/merge [left-bs right-bs])))
+  (prepare-bounds [{:keys [left right] :as shape}]
+    (assoc shape
+           :left (o/prepare-bounds left)
+           :right (o/prepare-bounds right)))
   (prepare-transform [{:keys [left right] :as shape} world->object object->world]
     (assoc shape
            :left (o/prepare-transform left world->object object->world)
@@ -84,8 +91,8 @@
   (includes? [{:keys [left right]} needle]
     (or (o/includes? left needle)
         (o/includes? right needle)))
-  (local-intersect [csg ray _]
-    (local-intersect csg ray))
+  (local-intersect [csg ray object]
+    (local-intersect csg ray object))
   (local-normal [_ _ _]
     (throw (ex-info "We should never call local-normal on a CSG Shape." {}))))
 

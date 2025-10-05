@@ -4,7 +4,8 @@
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
   (:import java.lang.Math)
-  (:require [rt-clj.intersections :as i]
+  (:require [rt-clj.bounds :as bd]
+            [rt-clj.intersections :as i]
             [rt-clj.shape-protocol :as sh]
             [rt-clj.tuples :as t]))
 
@@ -20,27 +21,12 @@
 ; - The intersection of the ray with that square will always be those two points: the largest minimum t value and the smallest maximum t value.
 ; - If the largest minimum t value is greater than the smallest maximum t value, the ray misses the cube.
 
-(defn check-axis
-  [^double origin ^double direction ^double min ^double max]
-  (let [t-min-numerator (- min origin)
-        t-max-numerator (- max origin)
-        parallel? (< (Math/abs direction) (double t/epsilon))
-        t-min (if parallel?
-                (* t-min-numerator (double t/infinity))
-                (/ t-min-numerator direction))
-        t-max (if parallel?
-                (* t-max-numerator (double t/infinity))
-                (/ t-max-numerator direction))]
-    (if (> t-min t-max)
-      [t-max t-min]
-      [t-min t-max])))
-
 (defn- local-intersect
   [{:keys [origin direction]} ;; ray
    object]
-  (let [[^double x-t-min ^double x-t-max] (check-axis (t/x origin) (t/x direction) -1 1)
-        [^double y-t-min ^double y-t-max] (check-axis (t/y origin) (t/y direction) -1 1)
-        [^double z-t-min ^double z-t-max] (check-axis (t/z origin) (t/z direction) -1 1)
+  (let [[^double x-t-min ^double x-t-max] (bd/check-axis (t/x origin) (t/x direction) -1 1)
+        [^double y-t-min ^double y-t-max] (bd/check-axis (t/y origin) (t/y direction) -1 1)
+        [^double z-t-min ^double z-t-max] (bd/check-axis (t/z origin) (t/z direction) -1 1)
         t-min (clojure.core/max x-t-min y-t-min z-t-min)
         t-max (clojure.core/min x-t-max y-t-max z-t-max)]
     (if (> t-min t-max)
@@ -72,8 +58,9 @@
 (defrecord Cube []
   sh/Shape
   (local-bounds [_]
-    {:min (t/point -1. -1. -1.)
-     :max (t/point 1. 1. 1.)})
+    bd/default)
+  (prepare-bounds [shape]
+    shape)
   (prepare-transform [shape _ _]
     shape)
   (includes? [_ _]

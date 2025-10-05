@@ -3,7 +3,8 @@
 (ns rt-clj.objects
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
-  (:require [rt-clj.shapes.cones :as co]
+  (:require [rt-clj.bounds :as bd]
+            [rt-clj.shapes.cones :as co]
             [rt-clj.shapes.csg-shapes :as csg]
             [rt-clj.shapes.cylinders :as cy]
             [rt-clj.shapes.cubes :as cu]
@@ -27,6 +28,13 @@
 
 ; ## Intersections
 
+(defn- prepare-bounds
+  [{:keys [shape] :as object}]
+  (let [shape' (sh/prepare-bounds shape)]
+    (assoc object 
+           :shape shape'
+           :bounds (sh/local-bounds shape'))))
+
 ; To calculate the world-intersect, we must first transform the ray in the object coordinates.
 
 (defn intersect [{:keys [shape inverse-t] :as object} ra]
@@ -40,10 +48,10 @@
    (let [{:keys [inverse-t shape]} object
          world->object (m/mul inverse-t parent-world->object)
          object->world (m/mul parent-object->world (m/transpose inverse-t))]
-       (assoc object
-              :world->object world->object
-              :object->world object->world
-              :shape (sh/prepare-transform shape world->object object->world))))
+     (assoc object
+            :world->object world->object
+            :object->world object->world
+            :shape (sh/prepare-transform shape world->object object->world))))
   ([object]
    (prepare-transform object (m/id 4) (m/id 4))))
 
@@ -68,11 +76,14 @@
 
 ; ## Creation
 
-(defrecord WorldObject [shape material transform inverse-t world->object object->world]
+(defrecord WorldObject [shape material transform inverse-t world->object object->world bounds]
   o/WorldObject
+  (prepare-bounds [object]
+    (prepare-bounds object))
   (prepare-transform [object world->object object->world]
     (prepare-transform object world->object object->world))
   (prepare [object]
+    (prepare-bounds object)
     (prepare-transform object))
   (includes? [object needle]
     (includes? object needle))
@@ -94,7 +105,7 @@
            :object->world (m/transpose inverse-t))))
 
 (defn object [shape material transform]
-  (-> (map->WorldObject {:shape shape})
+  (-> (map->WorldObject {:shape shape :bounds bd/infinite})
       (with-material material)
       (with-transform transform)))
 

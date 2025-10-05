@@ -3,7 +3,8 @@
 (ns rt-clj.shapes.planes
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
-  (:require [rt-clj.intersections :as i]
+  (:require [rt-clj.bounds :as bd]
+            [rt-clj.intersections :as i]
             [rt-clj.shape-protocol :as sh]
             [rt-clj.tuples :as t]))
 
@@ -37,8 +38,11 @@
 (defrecord Plane []
   sh/Shape
   (local-bounds [_]
-    {:min (t/point (- (double t/infinity)) (- (double t/epsilon)) (- (double t/infinity)))
-     :max (t/point t/infinity t/epsilon t/infinity)})
+    (bd/bounds
+     (t/point (- (double t/infinity)) (- (double t/epsilon)) (- (double t/infinity)))
+     (t/point t/infinity t/epsilon t/infinity)))
+  (prepare-bounds [shape]
+    shape)
   (prepare-transform [shape _ _]
     shape)
   (includes? [_ _]

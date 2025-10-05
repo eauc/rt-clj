@@ -1,6 +1,7 @@
 (ns rt-clj.shapes.csg-shapes-test
   (:require [clojure.test :refer [deftest is are testing]]
             [rt-clj.shapes.csg-shapes :refer :all]
+            [rt-clj.bounds :as bd]
             [rt-clj.intersections :as i]
             [rt-clj.objects :as os]
             [rt-clj.rays :as r]
@@ -62,7 +63,7 @@
     (let [shape (csg-shape :union (os/sphere) (os/cube))
           ray (r/ray (t/point 0. 2. -5.) (t/vector 0. 0. 1.))]
       (is (= []
-             (sh/local-intersect shape ray {})))))
+             (sh/local-intersect shape ray {:bounds bd/infinite})))))
 
   (testing "A ray hits a CSG object"
     (let [s1 (os/sphere)
@@ -71,4 +72,4 @@
           ray (r/ray (t/point 0. 0. -5.) (t/vector 0. 0. 1.))]
       (is (= [(i/intersection 4. (:left shape))
               (i/intersection 6.5 (:right shape))]
-             (sh/local-intersect shape ray {}))))))
+             (sh/local-intersect shape ray {:bounds bd/infinite}))))))
