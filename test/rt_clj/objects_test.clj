@@ -43,39 +43,46 @@
       (is (= 0
              (count xs)))))
 
-  ; (testing "Converting a point from world to object space"
-  ;   (let [sphere (sphere (tr/translation 5. 0. 0.))
-  ;         g2 (group (tr/scaling 2. 2. 2.) [sphere])
-  ;         g1 (group (tr/rotation-y (/ Math/PI 2.)) [g2])]
-  ;     (is (t/eq? (t/point 0. 0. -1.)
-  ;                (world->object (-> g1 :children first :children first)
-  ;                               (t/point -2. 0. -10.))))))
-  ;
-  ; (testing "Converting a normal from object to world space"
-  ;   (let [sphere (sphere (tr/translation 5. 0. 0.))
-  ;         g2 (group (tr/scaling 1. 2. 3.) [sphere])
-  ;         g1 (group (tr/rotation-y (/ Math/PI 2.)) [g2])
-  ;         sqrt3-on3 (/ (Math/sqrt 3.) 3.)]
-  ;     (is (t/eq? (t/vector 0.285714 0.428571 -0.857142)
-  ;                (object->world (-> g1 :children first :children first)
-  ;                               (t/vector sqrt3-on3 sqrt3-on3 sqrt3-on3))))))
-  ;
-  ; (testing "Finding the normal on a child object"
-  ;   (let [sphere (sphere (tr/translation 5. 0. 0.))
-  ;         g2 (group (tr/scaling 1. 2. 3.) [sphere])
-  ;         g1 (group (tr/rotation-y (/ Math/PI 2.)) [g2])]
-  ;     (is (t/eq? (t/vector 0.285703 0.428543 -0.857160)
-  ;                (normal (-> g1 :children first :children first)
-  ;                        (t/point 1.7321 1.1547 -5.5774)
-  ;                        {}))))))
+  (testing "Converting a point from world to object space"
+    (let [sphere (sphere nil (tr/translation 5. 0. 0.))
+          g2 (group [sphere] nil (tr/scaling 2. 2. 2.))
+          g1 (-> (group [g2] nil (tr/rotation-y (/ Math/PI 2.)))
+                 (o/prepare))
+          obj (-> g1 :shape :children first :shape :children first)]
+      (is (t/eq? (t/point 0. 0. -1.)
+                 (m/mul-t (:world->object obj) (t/point -2. 0. -10.))))))
 
-  (testing "Computing the normal on a translated sphere"
+  (testing "Converting a normal from object to world space"
+    (let [sphere (-> (sphere)
+                     (with-transform (tr/translation 5. 0. 0.)))
+          g2 (-> (group [sphere])
+                 (with-transform (tr/scaling 1. 2. 3.)))
+          g1 (-> (group [g2])
+                 (with-transform (tr/rotation-y (/ Math/PI 2.)))
+                 (o/prepare))
+          obj (-> g1 :shape :children first :shape :children first)
+          sqrt3-on3 (/ (Math/sqrt 3.) 3.)]
+      (is (t/eq? (t/vector 0.285714 0.428571 -0.857142)
+                 (-> (m/mul-t (:object->world obj) (t/vector sqrt3-on3 sqrt3-on3 sqrt3-on3))
+                     t/to-vector!
+                     t/norm)))))
+
+  (testing "Finding the normal on a child object"
+    (let [sphere (-> (sphere) (with-transform (tr/translation 5. 0. 0.)))
+          g2 (-> (group [sphere]) (with-transform (tr/scaling 1. 2. 3.)))
+          g1 (-> (group [g2]) (with-transform (tr/rotation-y (/ Math/PI 2.)))
+                 (o/prepare))
+          obj (-> g1 :shape :children first :shape :children first)]
+      (is (t/eq? (t/vector 0.285703 0.428543 -0.857160)
+                 (normal obj (t/point 1.7321 1.1547 -5.5774) {})))))
+
+  (testing "Computing the normal on a translated object"
     (is (t/eq? (t/vector 0. 0.70711 -0.70711)
                (o/normal (-> (sphere) (with-transform (tr/translation 0. 1. 0.)))
                          (t/point 0, 1.70711, -0.70711)
                          {}))))
 
-  (testing "Computing the normal on a scaled sphere"
+  (testing "Computing the normal on a scaled object"
     (is (t/eq? (t/vector 0. 0.97014 -0.24254)
                (o/normal (-> (sphere) (with-transform (tr/scaling 1. 0.5 1.)))
                          (t/point 0, 0.70711, -0.70711)

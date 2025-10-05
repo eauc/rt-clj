@@ -3,7 +3,8 @@
 (ns rt-clj.matrices
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
-  (:require [rt-clj.tuples :as t]))
+  (:require [clojure.pprint :as pp]
+            [rt-clj.tuples :as t]))
 
 ; ## Creation
 
@@ -18,6 +19,11 @@
         (let [v ((m i) j)]
           (aset r i j v))))
     r))
+
+(defn pprint ^"[[D" [^"[[D" m]
+  (print "M")
+  (pp/pprint (mapv #(into [] %) m))
+  m)
 
 (defn height ^long [^"[[D" m]
   (alength m))
@@ -179,7 +185,7 @@
                       sum
                       (recur (inc k) (+ sum (* (get-at cfs k 0) (get-at m 0 k))))))]
     (if (t/close? 0 d)
-      nil
+      (throw (ex-info "Cannot inverse matrix with det=0," {:d d :m m}))
       (do
         (dotimes [i w]
           (dotimes [j h]

@@ -45,17 +45,6 @@
   (or (and lhit (not inr))
       (and (not lhit) inl)))
 
-(defn- includes?
-  [{:keys [left right children] :as parent} child]
-  (cond
-    (not (nil? children))
-    (some #(includes? % child) children)
-    (not (nil? left))
-    (or (includes? left child)
-        (includes? right child))
-    :else
-    (= parent child)))
-
 (defn filter-intersections
   [{:keys [operation left]} ints]
   (loop [[{:keys [object] :as int} & rest] ints
@@ -64,7 +53,7 @@
          result []]
     (if (nil? int)
       result
-      (let [lhit (includes? left object)
+      (let [lhit (o/includes? left object)
             allowed? (intersection-allowed operation lhit inl inr)
             result' (if allowed? (conj result int) result)
             inl' (if lhit (not inl) inl)
@@ -88,6 +77,10 @@
   sh/Shape
   (local-bounds [_]
     {})
+  (prepare-transform [{:keys [left right] :as shape} world->object object->world]
+    (assoc shape
+           :left (o/prepare-transform left world->object object->world)
+           :right (o/prepare-transform right world->object object->world)))
   (local-intersect [csg ray _]
     (local-intersect csg ray))
   (local-normal [_ _ _]

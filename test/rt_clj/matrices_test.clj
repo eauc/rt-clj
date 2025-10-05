@@ -224,13 +224,6 @@
                         [-0.52256 -0.81391 -0.30075 0.30639]])
                (inverse m)))))
 
-  (testing "The inverse of a non-invertible matrix is nil"
-    (is (= nil
-           (inverse (matrix [[-4 2 -2 -3]
-                             [9 6 2 6]
-                             [0 -5 1 -5]
-                             [0 0 0 0]])))))
-
   (testing "Multiplying a product by its inverse"
     (let [a (matrix [[3. -9. 7. 3.]
                      [3. -8. 2. -9.]

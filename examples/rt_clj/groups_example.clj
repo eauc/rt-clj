@@ -53,16 +53,16 @@
                 (hex-side 5.)]
                mat
                transform))
-        grps [(hex (ma/id 4))]
-              ; (hex (->> (tr/rotation-x (* 3. (/ Math/PI 4.)))
-              ;           (ma/mul (tr/translation 2.5 0. 0.))))
-              ; (hex (->> (tr/rotation-x (/ Math/PI 4.))
-              ;           (ma/mul (tr/translation -2.5 0. 0.))))]
-        light (li/point-light (tu/point 10. 10. 10.) (co/color 1. 1. 1.))
+        grps [(hex (ma/id 4))
+              (hex (->> (tr/rotation-x (* 3. (/ Math/PI 4.)))
+                        (ma/mul (tr/translation 2.5 0. 0.))))
+              (hex (->> (tr/rotation-x (/ Math/PI 4.))
+                        (ma/mul (tr/translation -2.5 0. 0.))))]
+        light (li/point-light (tu/point 0. 0. 10.) (co/color 1. 1. 1.))
         world (wo/world grps [light])
-        view (tr/view (tu/point 5. 10. 6.)
+        view (tr/view (tu/point 0. 0. 10.)
                       (tu/point 0. 0. 0.)
-                      (tu/vector 0. 0. 1.))
+                      (tu/vector 0. 1. 0.))
         resolution 4
         cam (cm/camera (* 150 resolution) (* 100 resolution) (/ Math/PI 3) view)]
         ; cam-crit (cm/camera 1 1 (/ Math/PI 3) view)]

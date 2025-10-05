@@ -114,6 +114,8 @@
   sh/Shape
   (local-bounds [cne]
     (local-bounds cne))
+  (prepare-transform [shape _ _]
+    shape)
   (local-intersect [cne ray object]
     (local-intersect cne ray object))
   (local-normal [cne point _]

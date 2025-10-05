@@ -3,7 +3,8 @@
 (ns rt-clj.tuples
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
-  (:refer-clojure :exclude [vector vector?]))
+  (:refer-clojure :exclude [vector vector?])
+  (:require [clojure.pprint :as pp]))
 
 ; ## Creation
 
@@ -16,6 +17,11 @@
    (double-array [x y z w]))
   ([x y z]
    (tuple x y z 0.)))
+
+(defn pprint ^"[D" [^"[D" t]
+  (print "T")
+  (pp/pprint (into [] t))
+  t)
 
 (defn x ^double [^"[D" v]
   (aget v 0))
@@ -42,6 +48,10 @@
 
 (defn vector [x y z]
   (tuple x y z 0.0))
+
+(defn to-vector! ^"[D" [^"[D" t]
+  (aset t 3 0.)
+  t)
 
 (def origin (point 0. 0. 0.))
 

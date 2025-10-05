@@ -11,11 +11,6 @@
 
 (deftest groups-test
 
-  (testing "Adding children to a group"
-    (let [g (group [(os/sphere)])]
-      (is (m/eq? (tr/translation 1. 2. 3.)
-                 (:transform (:parent (first (:children g))))))))
-
   (testing "Intersecting a ray with an empty group"
     (is (= []
            (sh/local-intersect (group []) (r/ray (t/point 0. 0. 0.) (t/vector 0. 0. 1.)) {}))))

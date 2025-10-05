@@ -16,14 +16,6 @@
           shape (csg-shape :union s1 s2)]
       (is (= :union
              (:operation shape)))))
-      ; (is (= s1
-      ;        (dissoc (:left shape) :parent)))))
-      ; (is (= s2
-      ;        (dissoc (:right shape) :parent)))
-      ; (is (= :union
-      ;        (get-in shape [:right :parent :shape :operation])))
-      ; (is (= :union
-      ;        (get-in shape [:left :parent :shape :operation])))))
 
   (testing "Evaluating the rule for a CSG operation"
     (are [op lhit inl inr result]

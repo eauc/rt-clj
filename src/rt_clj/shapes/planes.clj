@@ -39,6 +39,8 @@
   (local-bounds [_]
     {:min (t/point (- (double t/infinity)) (- (double t/epsilon)) (- (double t/infinity)))
      :max (t/point t/infinity t/epsilon t/infinity)})
+  (prepare-transform [shape _ _]
+    shape)
   (local-intersect [_ ray object]
     (local-intersect ray object))
   (local-normal [_ _ _]

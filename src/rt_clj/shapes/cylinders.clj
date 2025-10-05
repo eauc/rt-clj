@@ -109,6 +109,8 @@
   sh/Shape
   (local-bounds [cyl]
     (local-bounds cyl))
+  (prepare-transform [shape _ _]
+    shape)
   (local-intersect [cyl ray object]
     (local-intersect cyl ray object))
   (local-normal [cyl point _]

@@ -74,6 +74,8 @@
   (local-bounds [_]
     {:min (t/point -1. -1. -1.)
      :max (t/point 1. 1. 1.)})
+  (prepare-transform [shape _ _]
+    shape)
   (local-intersect [_ ray object]
     (local-intersect ray object))
   (local-normal [_ point _]

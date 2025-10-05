@@ -16,7 +16,21 @@
             [rt-clj.shapes.planes :as p]
             [rt-clj.shapes.spheres :as s]
             [rt-clj.shapes.triangles :as tr]
-            [rt-clj.tuples :as t]))
+            [rt-clj.tuples :as tu]))
+
+(defn- includes?
+  [object needle]
+  (let [{:keys [left right children]} (:shape object)]
+    (if (= object needle)
+      true
+      (cond
+        (not (nil? children))
+        (some #(includes? % needle) children)
+        (not (nil? left))
+        (or (includes? left needle)
+            (includes? right needle))
+        :else
+        false))))
 
 ; ## Intersections
 
@@ -28,27 +42,21 @@
 
 ; ## World transformations
 
-; `world->object` takes a point in world space and transform it to object space, taking into consideration any parent objects between the two spaces.
-
-(defn world->object
-  [{:keys [parent inverse-t] :as object} point]
-  (if (nil? object)
-    point
-    (m/mul-t inverse-t (world->object parent point))))
-
-; `object->world` takes a normal vector in object space and transform it to world space, taking into consideration any parent objects between the two spaces.
-
-(defn object->world
-  [{:keys [trans-inverse-t parent]} v]
-  (let [[x y z] ((juxt t/x t/y t/z) (m/mul-t trans-inverse-t v))
-        new-v (t/norm (t/vector x y z))]
-    (if (nil? parent)
-      new-v
-      (object->world parent new-v))))
+(defn- prepare-transform
+  ([object parent-world->object parent-object->world]
+   (let [{:keys [inverse-t shape]} object
+         world->object (m/mul inverse-t parent-world->object)
+         object->world (m/mul parent-object->world (m/transpose inverse-t))]
+       (assoc object
+              :world->object world->object
+              :object->world object->world
+              :shape (sh/prepare-transform shape world->object object->world))))
+  ([object]
+   (prepare-transform object (m/id 4) (m/id 4))))
 
 ; ## Normal
 
-; `shape/normal` must find the normal on a child object of a group, taking into account transformations on both the child object and the parent(s).
+; `shape/normal` must find the normal on a child object of a group
 
 ; To calculate the world-normal, we must :
 ; - first transform the intersection point into object-world.
@@ -58,39 +66,44 @@
 ; - the resulting vector is also not normalized anymore, so we normalize the result.
 
 (defn normal [{:keys [shape] :as object} world-point hit]
-  (let [local-point (world->object object world-point)
-        local-normal (sh/local-normal shape local-point hit)]
-    (object->world object local-normal)))
-
-; ## Children
-
-; Children contains a reference to their parent group.
-
-(defn with-parent
-  [object {:keys [material] :as parent}]
-  (let [object' (cond-> object
-                  :always (assoc :parent parent)
-                  (some? material) (assoc :material material))]
-    (assoc object' :children (mapv #(with-parent % object') (:children object')))))
+  (let [local-point (m/mul-t (:world->object object) world-point)
+        local-normal (sh/local-normal shape local-point hit)
+        world-normal (m/mul-t (:object->world object) local-normal)]
+    (-> world-normal
+        tu/to-vector!
+        tu/norm)))
 
 ; ## Creation
 
-(defrecord WorldObject [shape material transform inverse-t trans-inverse-t parent]
+(defrecord WorldObject [shape material transform inverse-t world->object object->world]
   o/WorldObject
+  (prepare-transform [object world->object object->world]
+    (prepare-transform object world->object object->world))
+  (prepare [object]
+    (prepare-transform object))
+  (includes? [object needle]
+    (includes? object needle))
   (intersect [object ray]
     (intersect object ray))
   (normal [object point hit]
     (normal object point hit)))
 
-(defn object [shape material transform]
+(defn with-material [object material-options]
+  (assoc object :material (merge mr/default-material
+                                 material-options)))
+
+(defn with-transform [object transform]
   (let [inverse-t (m/inverse transform)]
-    (->WorldObject
-     shape
-     (merge mr/default-material material)
-     transform
-     inverse-t
-     (m/transpose inverse-t)
-     nil)))
+    (assoc object
+           :transform transform
+           :inverse-t inverse-t
+           :world->object inverse-t
+           :object->world (m/transpose inverse-t))))
+
+(defn object [shape material transform]
+  (-> (map->WorldObject {:shape shape})
+      (with-material material)
+      (with-transform transform)))
 
 (defn cone
   ([minimum maximum closed? material transform]
@@ -106,10 +119,7 @@
 
 (defn csg-shape
   ([operation left right material transform]
-   (let [c (object (csg/csg-shape operation left right) material transform)]
-     (-> c
-         (update-in [:shape left] with-parent c)
-         (update-in [:shape right] with-parent c))))
+   (object (csg/csg-shape operation left right) material transform))
   ([operation left right]
    (csg-shape operation left right mr/default-material (m/id 4))))
 
@@ -121,8 +131,7 @@
 
 (defn group
   ([children material transform]
-   (let [gr (object (gr/group children) material transform)]
-     (update-in gr [:shape :children] #(mapv (fn [c] (with-parent c gr)) %))))
+   (object (gr/group children) material transform))
   ([children]
    (group children mr/default-material (m/id 4))))
 
@@ -149,14 +158,3 @@
    (object (tr/smooth-triangle p1 p2 p3 n1 n2 n3) material transform))
   ([p1 p2 p3 n1 n2 n3]
    (smooth-triangle p1 p2 p3 n1 n2 n3 mr/default-material (m/id 4))))
-
-(defn with-material [object material-options]
-  (assoc object :material (merge mr/default-material
-                                 material-options)))
-
-(defn with-transform [object transform]
-  (let [inverse-t (m/inverse transform)]
-    (assoc object
-           :transform transform
-           :inverse-t inverse-t
-           :trans-inverse-t (m/transpose inverse-t))))

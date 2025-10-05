@@ -62,23 +62,25 @@
 (def default-depth 4)
 
 (defn render
-  ([{:keys [^long hsize ^long vsize] :as cam} world
+  ([{:keys [^long hsize ^long vsize] :as cam}
+    world
     {:keys [parallel?] :or {parallel? false}}]
-   (if parallel?
-     (cr/fold
-       (int (/ vsize 8))
-       (fn combinef
-         ([] [])
-         ([a b] (concat a b)))
-       (fn reducef
-         ([] [])
-         ([cs y]
-          (conj cs (mapv #(w/color world (pixel-ray cam % y) default-depth)
-                         (vec (range hsize))))))
-       (vec (range vsize)))
-     (mapv (fn [y]
-             (mapv #(w/color world (pixel-ray cam % y) default-depth)
-                   (range hsize)))
-           (range vsize))))
+   (let [world (w/prepare world)]
+     (if parallel?
+       (cr/fold
+        (int (/ vsize 8))
+        (fn combinef
+          ([] [])
+          ([a b] (concat a b)))
+        (fn reducef
+          ([] [])
+          ([cs y]
+           (conj cs (mapv #(w/color world (pixel-ray cam % y) default-depth)
+                          (vec (range hsize))))))
+        (vec (range vsize)))
+       (mapv (fn [y]
+               (mapv #(w/color world (pixel-ray cam % y) default-depth)
+                     (range hsize)))
+             (range vsize)))))
   ([cam world]
    (render cam world {})))

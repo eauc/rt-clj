@@ -45,6 +45,8 @@
     (let [e (double t/epsilon)]
       {:min (t/point (- e) (- e) (- e))
        :max (t/point e e e)}))
+  (prepare-transform [{:keys [children] :as shape} world->object object->world]
+    (assoc shape :children (mapv #(o/prepare-transform % world->object object->world) children)))
   (local-intersect [gr ray _]
     (local-intersect gr ray))
   (local-normal [_ _ _]

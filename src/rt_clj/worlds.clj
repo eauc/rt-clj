@@ -40,6 +40,9 @@
                 (tr/scaling 0.5 0.5 0.5)))]
          [(l/point-light (t/point -10. 10. -10.) (c/color 1. 1. 1.))]))
 
+(defn prepare [{:keys [objects] :as world}]
+  (assoc world :objects (mapv #(o/prepare %) objects)))
+
 ; ## Intersections with rays
 ;
 ; The `intersect` function on a world should iterate over the list of objects and return all intersections with the ray.

@@ -100,6 +100,8 @@
   sh/Shape
   (local-bounds [tri]
     (local-bounds tri))
+  (prepare-transform [shape _ _]
+    shape)
   (local-intersect [tri ray object]
     (local-intersect tri ray object))
   (local-normal [tri _ hit]
