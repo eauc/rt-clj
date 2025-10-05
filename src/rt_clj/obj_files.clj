@@ -4,9 +4,7 @@
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
   (:require [clojure.string]
-            [rt-clj.groups :as gr]
-            [rt-clj.materials :as mr]
-            [rt-clj.triangles :as tg]
+            [rt-clj.objects :as os]
             [rt-clj.tuples :as t]))
 
 ; The Wavefront OBJ file format is a common format for storing and sharing 3D graphics data. The OBJ format is plain text, which means you can view, edit, and even create these files in any text editor, though it’s much easier to model something in a 3D modeling tool and then export it to OBJ.
@@ -52,8 +50,8 @@
         (recur v-rest n-rest
                (conj triangles
                      (if (nil? n1)
-                       (tg/triangle v1 v2 (first v-rest))
-                       (tg/smooth-triangle v1 v2 (first v-rest)
+                       (os/triangle v1 v2 (first v-rest))
+                       (os/smooth-triangle v1 v2 (first v-rest)
                                            n1 n2 (first n-rest)))))))))
 
 (defn parse-lines
@@ -113,16 +111,12 @@
                           :else
                           (recur rest current-group groups normals triangles vertices))))
          groups (assoc groups current-group triangles)]
-     {:group (gr/with-children
-               (assoc (gr/group) :material material)
-               (concat
-                (get groups "default")
-                (map (fn [[name children]]
-                       (gr/with-children
-                         (assoc (gr/group) :name name)
-                         children))
-                     (dissoc groups "default"))))
+     {:group (let [named-groups (map (fn [[name children]]
+                                       (assoc (os/group children) :name name))
+                                     (dissoc groups "default"))]
+               (-> (os/group (concat (get groups "default") named-groups))
+                   (os/with-material material)))
       :normals normals
       :vertices vertices}))
   ([lines]
-   (parse-lines lines mr/default-material)))
+   (parse-lines lines nil)))

@@ -1,13 +1,11 @@
 ; # Cylinders
 
-(ns rt-clj.cylinders
+(ns rt-clj.shapes.cylinders
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
   (:import java.lang.Math)
   (:require [rt-clj.intersections :as i]
-            [rt-clj.matrices :as m]
-            [rt-clj.materials :as mr]
-            [rt-clj.shapes :as sh]
+            [rt-clj.shape-protocol :as sh]
             [rt-clj.tuples :as t]))
 
 ; ## Bounds
@@ -31,25 +29,21 @@
 ; `intersect-caps` checks to see if the given ray intersects the end caps of the given cylinder, and adds the points of intersection (if any) to the hits collection.
 
 (defn intersect-caps
-  [{:keys [closed? ^double minimum ^double maximum] :as cyl}
+  [{:keys [closed? ^double minimum ^double maximum]}
    {:keys [origin direction] :as ray}
-   ints]
+   object]
   (if (or (not closed?)
           (t/close? 0. (t/y direction)))
-    ints
+    []
     (let [t-min (/ (- minimum (t/y origin)) (t/y direction))
           t-max (/ (- maximum (t/y origin)) (t/y direction))
           cap-min? (check-cap ray t-min)
           cap-max? (check-cap ray t-max)]
-      (into
-       []
-       (concat
-        ints
-        (cond
-          (and cap-min? cap-max?) [(i/intersection t-min cyl) (i/intersection t-max cyl)]
-          cap-min? [(i/intersection t-min cyl)]
-          cap-max? [(i/intersection t-max cyl)]
-          :else []))))))
+      (cond
+        (and cap-min? cap-max?) [(i/intersection t-min object) (i/intersection t-max object)]
+        cap-min? [(i/intersection t-min object)]
+        cap-max? [(i/intersection t-max object)]
+        :else []))))
 
 ; We first calculate a pseudo-discrimant, which is negative is the ray doesn't intersect the cylinder.
 
@@ -57,36 +51,41 @@
 
 ; We also need to calculate the `y` coordinate at each intersection and check it is between `minimum` and `maximum` properties for the cylinder. If not, the intersection is not valid.
 
+(defn- intersect-sides
+  [{:keys [minimum maximum]}
+   {:keys [direction origin]}
+   object]
+  (let [a (* (+ (Math/pow (t/x direction) 2.)
+                (Math/pow (t/z direction) 2.))
+             2.)]
+    (if (t/close? a 0.)
+      []
+      (let [b (+ (* 2 (t/x origin) (t/x direction))
+                 (* 2 (t/z origin) (t/z direction)))
+            c (+ (Math/pow (t/x origin) 2.)
+                 (Math/pow (t/z origin) 2.)
+                 -1.)
+            disc (- (Math/pow b 2.) (* 2. a c))]
+        (if (< disc 0.)
+          []
+          (let [disc-sqrt (Math/sqrt disc)
+                t0 (/ (- 0. b disc-sqrt) a)
+                t1 (/ (+ (- 0. b) disc-sqrt) a)
+                y0 (+ (t/y origin) (* t0 (t/y direction)))
+                y1 (+ (t/y origin) (* t1 (t/y direction)))
+                y0-in-bound (< minimum y0 maximum)
+                y1-in-bound (< minimum y1 maximum)]
+            (cond
+              (and y0-in-bound y1-in-bound) [(i/intersection t0 object) (i/intersection t1 object)]
+              y0-in-bound [(i/intersection t0 object)]
+              y1-in-bound [(i/intersection t1 object)]
+              :else [])))))))
+
 (defn local-intersect
-  [{:keys [minimum maximum] :as cyl}
-   {:keys [direction origin] :as ray}]
-  (intersect-caps
-   cyl ray
-   (let [a (* (+ (Math/pow (t/x direction) 2.)
-                 (Math/pow (t/z direction) 2.))
-              2.)]
-     (if (t/close? a 0.)
-       []
-       (let [b (+ (* 2 (t/x origin) (t/x direction))
-                  (* 2 (t/z origin) (t/z direction)))
-             c (+ (Math/pow (t/x origin) 2.)
-                  (Math/pow (t/z origin) 2.)
-                  -1.)
-             disc (- (Math/pow b 2.) (* 2. a c))]
-         (if (< disc 0.)
-           []
-           (let [disc-sqrt (Math/sqrt disc)
-                 t0 (/ (- 0. b disc-sqrt) a)
-                 t1 (/ (+ (- 0. b) disc-sqrt) a)
-                 y0 (+ (t/y origin) (* t0 (t/y direction)))
-                 y1 (+ (t/y origin) (* t1 (t/y direction)))
-                 y0-in-bound (< minimum y0 maximum)
-                 y1-in-bound (< minimum y1 maximum)]
-             (cond
-               (and y0-in-bound y1-in-bound) [(i/intersection t0 cyl) (i/intersection t1 cyl)]
-               y0-in-bound [(i/intersection t0 cyl)]
-               y1-in-bound [(i/intersection t1 cyl)]
-               :else []))))))))
+  [cyl ray object]
+  (concat
+   (intersect-sides cyl ray object)
+   (intersect-caps cyl ray object)))
 
 ; ## Normal
 
@@ -95,7 +94,7 @@
 ; When the point is on one of the cylinder's cap, just return =+/-u[y]=.
 
 (defn local-normal
-  [{:keys [^double minimum ^double maximum]} point _]
+  [{:keys [^double minimum ^double maximum]} point]
   (let [d (+ (Math/pow (t/x point) 2.)
              (Math/pow (t/z point) 2.))
         e (double t/epsilon)]
@@ -106,14 +105,17 @@
 
 ; ## Creation
 
+(defrecord Cylinder [minimum maximum closed?]
+  sh/Shape
+  (local-bounds [cyl]
+    (local-bounds cyl))
+  (local-intersect [cyl ray object]
+    (local-intersect cyl ray object))
+  (local-normal [cyl point _]
+    (local-normal cyl point)))
+
 (defn cylinder
-  ([transform material]
-   (-> (sh/shape local-bounds local-intersect local-normal transform material)
-       (assoc
-        :closed? false
-        :minimum (- (double t/infinity))
-        :maximum t/infinity)))
-  ([transform]
-   (cylinder transform mr/default-material))
+  ([minimum maximum closed?]
+   (->Cylinder minimum maximum closed?))
   ([]
-   (cylinder (m/id 4) mr/default-material)))
+   (cylinder (- (double t/infinity)) t/infinity false)))

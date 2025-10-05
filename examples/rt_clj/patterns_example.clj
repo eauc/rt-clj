@@ -13,14 +13,12 @@
             [rt-clj.canvas :as ca]
             [rt-clj.colors :as co]
             [rt-clj.lights :as li]
-            [rt-clj.materials :as mr]
             [rt-clj.matrices :as ma]
+            [rt-clj.objects :as os]
             [rt-clj.patterns :as pt]
-            [rt-clj.spheres :as sp]
             [rt-clj.transformations :as tr]
             [rt-clj.tuples :as tu]
-            [rt-clj.worlds :as wo]
-            [rt-clj.planes :as pl])
+            [rt-clj.worlds :as wo])
   (:import java.lang.Math))
 
 ; ## Stripes
@@ -50,13 +48,15 @@
 {:nextjournal.clerk/visibility {:code :show :result :hide}}
 (defn -main []
   ;; stripes
-  (let [stripes (pt/stripes (co/color 0. 0.8 0.3) co/white
-                            (tr/scaling 0.5 0.5 0.5))
-        material (-> mr/default-material (assoc :pattern stripes))
-        sphere (sp/sphere (tr/scaling 4. 4. 4.) material)
-        floor (pl/plane (ma/mul (tr/translation 0. 0. -10.)
-                                (tr/rotation-x (/ Math/PI 2)))
-                        material)
+  (let [stripes (pt/stripes
+                 (co/color 0. 0.8 0.3) co/white
+                 (tr/scaling 0.5 0.5 0.5))
+        material {:pattern stripes}
+        sphere (os/sphere material (tr/scaling 4. 4. 4.))
+        floor (os/plane
+               material
+               (ma/mul (tr/translation 0. 0. -10.)
+                       (tr/rotation-x (/ Math/PI 2))))
         light (li/point-light (tu/point 10. 10. 10.) (co/color 1. 1. 1.))
         world (wo/world [floor sphere] [light])
         view (tr/view (tu/point 7. 10. 5.)
@@ -65,19 +65,20 @@
         resolution 4
         cam (cm/camera (* resolution 150) (* resolution 100) (/ Math/PI 3) view)]
     (spit
-      "./examples/img/patterns-stripes-example.ppm"
-      (clojure.string/join
-        "\n" (ca/ppm-rows (cm/render cam world {:parallel? true})))))
+     "./examples/img/patterns-stripes-example.ppm"
+     (clojure.string/join
+      "\n" (ca/ppm-rows (cm/render cam world {:parallel? true})))))
 
-
-  (let [gradient (pt/gradient (co/color 1. 0. 0.) (co/color 0. 0. 1.)
-                              (ma/mul (tr/translation 1. 0. 0.)
-                                      (tr/scaling 2. 2. 2.)))
-        material (-> mr/default-material (assoc :pattern gradient))
-        sphere (sp/sphere (tr/scaling 4. 4. 4.) material)
-        floor (pl/plane (ma/mul (tr/translation 0. 0. -10.)
-                                (tr/rotation-x (/ Math/PI 2)))
-                        material)
+  (let [gradient (pt/gradient
+                  (co/color 1. 0. 0.) (co/color 0. 0. 1.)
+                  (ma/mul (tr/translation 1. 0. 0.)
+                          (tr/scaling 2. 2. 2.)))
+        material {:pattern gradient}
+        sphere (os/sphere material (tr/scaling 4. 4. 4.))
+        floor (os/plane
+               material
+               (ma/mul (tr/translation 0. 0. -10.)
+                       (tr/rotation-x (/ Math/PI 2))))
         light (li/point-light (tu/point 10. 10. 10.) (co/color 1. 1. 1.))
         world (wo/world [floor sphere] [light])
         view (tr/view (tu/point 7. 10. 5.)
@@ -88,15 +89,16 @@
     (spit "./examples/img/patterns-gradient-example.ppm"
           (clojure.string/join "\n" (ca/ppm-rows (cm/render cam world)))))
 
-
-  (let [rings (pt/rings (co/color 0. 0.8 0.3) co/white
-                        (tr/scaling 0.33 0.33 0.33))
-        material (-> mr/default-material (assoc :pattern rings))
-        sphere (sp/sphere (tr/scaling 4. 4. 4.) material)
+  (let [rings (pt/rings
+               (co/color 0. 0.8 0.3) co/white
+               (tr/scaling 0.33 0.33 0.33))
+        material {:pattern rings}
+        sphere (os/sphere material (tr/scaling 4. 4. 4.))
         light (li/point-light (tu/point 10. 10. 10.) (co/color 1. 1. 1.))
-        floor (pl/plane (ma/mul (tr/translation 0. 0. -10.)
-                                (tr/rotation-x (/ Math/PI 2)))
-                        material)
+        floor (os/plane
+               material
+               (ma/mul (tr/translation 0. 0. -10.)
+                       (tr/rotation-x (/ Math/PI 2))))
         world (wo/world [floor sphere] [light])
         view (tr/view (tu/point 12. 7. 5.)
                       (tu/point 0. 0. 0.)
@@ -106,13 +108,14 @@
     (spit "./examples/img/patterns-rings-example.ppm"
           (clojure.string/join "\n" (ca/ppm-rows (cm/render cam world)))))
 
-
-  (let [checker (pt/checker (co/color 0. 0.3 0.8) co/white)
-        material (-> mr/default-material (assoc :pattern checker))
-        sphere (sp/sphere (tr/scaling 4. 4. 4.) material)
-        floor (pl/plane (ma/mul (tr/translation 0. 0. -10.)
-                                (tr/rotation-x (/ Math/PI 2)))
-                        material)
+  (let [checker (pt/checker
+                 (co/color 0. 0.3 0.8) co/white)
+        material {:pattern checker}
+        sphere (os/sphere material (tr/scaling 4. 4. 4.))
+        floor (os/plane
+               material
+               (ma/mul (tr/translation 0. 0. -10.)
+                       (tr/rotation-x (/ Math/PI 2))))
         light (li/point-light (tu/point 10. 10. 10.) (co/color 1. 1. 1.))
         world (wo/world [floor sphere] [light])
         view (tr/view (tu/point 12. 7. 5.)

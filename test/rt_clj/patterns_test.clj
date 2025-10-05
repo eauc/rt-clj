@@ -1,28 +1,28 @@
 (ns rt-clj.patterns-test
-  (:require [clojure.test :refer :all]
+  (:require [clojure.test :refer [deftest is testing]]
             [rt-clj.pattern-protocol :refer :all]
             [rt-clj.patterns :refer :all]
             [rt-clj.colors :as c]
-            [rt-clj.spheres :as s]
+            [rt-clj.objects :as os]
             [rt-clj.transformations :as tr]
             [rt-clj.tuples :as t]))
 
 (deftest patterns-test
 
   (testing "A pattern with an object transformation"
-    (let [shape (s/sphere (tr/scaling 2. 2. 2.))
+    (let [shape (-> (os/sphere) (os/with-transform (tr/scaling 2. 2. 2.)))
           pattern (test-pattern)]
       (is (t/eq? (c/color 1. 1.5 2.)
                  (pattern-at-shape pattern shape (t/point 2. 3. 4.))))))
 
   (testing "A pattern with a pattern transformation"
-    (let [shape (s/sphere)
+    (let [shape (os/sphere)
           pattern (test-pattern (tr/scaling 2. 2. 2.))]
       (is (t/eq? (c/color 1. 1.5 2.)
                  (pattern-at-shape pattern shape (t/point 2. 3. 4.))))))
 
   (testing "A pattern with both an object and a pattern transformation"
-    (let [shape (s/sphere (tr/scaling 2. 2. 2.))
+    (let [shape (-> (os/sphere) (os/with-transform (tr/scaling 2. 2. 2.)))
           pattern (test-pattern (tr/translation 0.5 1. 1.5))]
       (is (t/eq? (c/color 0.75 0.5 0.25)
                  (pattern-at-shape pattern shape (t/point 2.5 3. 3.5))))))
@@ -61,19 +61,19 @@
                  (pattern-at pattern (t/point -1.1 0. 0.))))))
 
   (testing "Stripes with an object transformation"
-    (let [object (s/sphere (tr/scaling 2. 2. 2.))
+    (let [object (-> (os/sphere) (os/with-transform (tr/scaling 2. 2. 2.)))
           pattern (stripes c/white c/black)]
       (is (t/eq? c/white
                  (pattern-at-shape pattern object (t/point 1.5 0. 0.))))))
 
   (testing "Stripes with a pattern transformation"
-    (let [object (s/sphere)
+    (let [object (os/sphere)
           pattern (stripes c/white c/black (tr/scaling 2. 2. 2.))]
       (is (t/eq? c/white
                  (pattern-at-shape pattern object (t/point 1.5 0. 0.))))))
 
   (testing "Stripes with both an object and a pattern transformation"
-    (let [object (s/sphere (tr/scaling 2. 2. 2.))
+    (let [object (-> (os/sphere) (os/with-transform (tr/scaling 2. 2. 2.)))
           pattern (stripes c/white c/black (tr/translation 0.5 0. 0.))]
       (is (t/eq? c/white
                  (pattern-at-shape pattern object (t/point 2.5 0. 0.))))))

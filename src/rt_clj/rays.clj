@@ -9,9 +9,10 @@
 ;
 ; Rays have a point as origin and a vector as direction.
 
+(defrecord Ray [origin direction])
+
 (defn ray [origin direction]
-  {:origin origin
-   :direction direction})
+  (->Ray origin direction))
 
 ; ## Basic operations
 

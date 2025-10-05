@@ -9,8 +9,8 @@
             [rt-clj.colors :as co]
             [rt-clj.intersections :as in]
             [rt-clj.rays :as ra]
-            [rt-clj.shapes :as sh]
-            [rt-clj.spheres :as sp]
+            [rt-clj.object-protocol :as o]
+            [rt-clj.objects :as os]
             [rt-clj.transformations :as tr]
             [rt-clj.tuples :as tu]))
 
@@ -28,7 +28,8 @@
 (defn -main []
   (let [miss-col (co/color 0. 0. 0.)
         hit-col (co/color 1. 0. 0.)
-        s (sp/sphere (tr/scaling 1. 0.5 1.))
+        s (-> (os/sphere) 
+              (os/with-transform (tr/scaling 1. 0.5 1.)))
         o (tu/point 3. 0. 0.)
         h 256
         w 256
@@ -44,7 +45,7 @@
                                                       (+ -3. (* j pixel-step-h)))
                                    ray-d (tu/sub screen-p o)
                                    ray (ra/ray o ray-d)]
-                               (in/hit (sh/intersect s ray)))) (range w))) (range h))
+                               (in/hit (o/intersect s ray)))) (range w))) (range h))
         cv (reduce (fn [c i]
                      (reduce (fn [c j]
                                (ca/assoc-at c i j (if (get-in hits [i j])

@@ -1,14 +1,13 @@
 (ns rt-clj.worlds-test
-  (:require [clojure.test :refer :all]
+  (:require [clojure.test :refer [deftest is testing]]
             [rt-clj.worlds :refer :all]
             [rt-clj.colors :as c]
             [rt-clj.intersections :as i]
             [rt-clj.lights :as l]
             [rt-clj.materials :as m]
+            [rt-clj.objects :as os]
             [rt-clj.patterns :as pt]
-            [rt-clj.planes :as p]
             [rt-clj.rays :as r]
-            [rt-clj.spheres :as s]
             [rt-clj.transformations :as tr]
             [rt-clj.tuples :as t]))
 
@@ -55,8 +54,8 @@
                  (shade-hit w int comps 1)))))
 
   (testing "Shading an intersection in shadow"
-    (let [s2 (s/sphere (tr/translation 0. 0. 10.))
-          w (world [(s/sphere) s2]
+    (let [s2 (-> (os/sphere) (os/with-transform (tr/translation 0. 0. 10.)))
+          w (world [(os/sphere) s2]
                    [(l/point-light (t/point 0. 0. -10.) (c/color 1. 1. 1.))])
           ray (r/ray (t/point 0. 0. 5.) (t/vector 0. 0. 1.))
           int (i/intersection 4. s2)
@@ -65,8 +64,9 @@
                  (shade-hit w int comps 1)))))
 
   (testing "Shading an intersection with a reflective material"
-    (let [shape (p/plane (tr/translation 0. -1. 0.)
-                         (-> m/default-material (assoc :reflective 0.5)))
+    (let [shape (os/plane
+                 (-> m/default-material (assoc :reflective 0.5))
+                 (tr/translation 0. -1. 0.))
           w (-> (default-world) (update :objects #(conj % shape)))
           a (/ (Math/sqrt 2) 2)
           ray (r/ray (t/point 0. 0. -3.) (t/vector 0. (- a) a))
@@ -107,10 +107,10 @@
     (testing "Objects can opt out of shadow calculation"
       (is (= false
              (shadowed? (world
-                          (-> (:objects (default-world))
-                              (assoc-in [0 :material :shadow?] false)
-                              (assoc-in [1 :material :shadow?] false))
-                          (:lights (default-world)))
+                         (-> (:objects (default-world))
+                             (assoc-in [0 :material :shadow?] false)
+                             (assoc-in [1 :material :shadow?] false))
+                         (:lights (default-world)))
                         (t/point 10. -10. 10.) light))))
 
     (testing "There is no shadow when an object is behind the light"
@@ -131,8 +131,9 @@
                  (reflected-color w int comps 1)))))
 
   (testing "The reflected color for a reflective material"
-    (let [shape (p/plane (tr/translation 0. -1. 0.)
-                         (-> m/default-material (assoc :reflective 0.5)))
+    (let [shape (os/plane
+                 (-> m/default-material (assoc :reflective 0.5))
+                 (tr/translation 0. -1. 0.))
           w (-> (default-world) (update :objects #(conj % shape)))
           a (/ (Math/sqrt 2) 2)
           ray (r/ray (t/point 0. 0. -3.) (t/vector 0. (- a) a))
@@ -142,8 +143,9 @@
                  (reflected-color w int comps 1)))))
 
   (testing "The reflected color at the maximum recursive depth"
-    (let [shape (p/plane (tr/translation 0. -1. 0.)
-                         (-> m/default-material (assoc :reflective 0.5)))
+    (let [shape (os/plane
+                 (-> m/default-material (assoc :reflective 0.5))
+                 (tr/translation 0. -1. 0.))
           w (-> (default-world) (update :objects #(conj % shape)))
           a (/ (Math/sqrt 2) 2)
           ray (r/ray (t/point 0. 0. -3.) (t/vector 0. (- a) a))
@@ -208,14 +210,16 @@
                  (first (refracted-color w hit comps 5))))))
 
   (testing "shade-hit with a transparent material"
-    (let [floor (p/plane (tr/translation 0. -1. 0.)
-                         (assoc m/default-material
-                                :transparency 0.5
-                                :refractive-index 1.5))
-          ball (s/sphere (tr/translation 0. -3.5 -0.5)
-                         (assoc m/default-material
-                                :ambient 0.5
-                                :color (c/color 1. 0. 0.)))
+    (let [floor (os/plane
+                 (assoc m/default-material
+                        :transparency 0.5
+                        :refractive-index 1.5)
+                 (tr/translation 0. -1. 0.))
+          ball (os/sphere
+                (assoc m/default-material
+                       :ambient 0.5
+                       :color (c/color 1. 0. 0.))
+                (tr/translation 0. -3.5 -0.5))
           w (world
              (-> (:objects (default-world))
                  (conj floor)
@@ -230,15 +234,17 @@
 
   (testing "shade-hit with a reflective, transparent material"
     (let [sqrt2_on2 (/ (Math/sqrt 2.) 2.)
-          floor (p/plane (tr/translation 0. -1. 0.)
-                         (assoc m/default-material
-                                :reflective 0.5
-                                :transparency 0.5
-                                :refractive-index 1.5))
-          ball (s/sphere (tr/translation 0. -3.5 -0.5)
-                         (assoc m/default-material
-                                :color (c/color 1. 0. 0.)
-                                :ambient 0.5))
+          floor (os/plane
+                 (assoc m/default-material
+                        :reflective 0.5
+                        :transparency 0.5
+                        :refractive-index 1.5)
+                 (tr/translation 0. -1. 0.))
+          ball (os/sphere
+                (assoc m/default-material
+                       :color (c/color 1. 0. 0.)
+                       :ambient 0.5)
+                (tr/translation 0. -3.5 -0.5))
           w (world
              (-> (:objects (default-world))
                  (conj floor)

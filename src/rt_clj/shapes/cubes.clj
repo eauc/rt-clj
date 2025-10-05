@@ -1,18 +1,12 @@
 ; # Cubes
 
-(ns rt-clj.cubes
+(ns rt-clj.shapes.cubes
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
   (:import java.lang.Math)
   (:require [rt-clj.intersections :as i]
-            [rt-clj.shapes :as sh]
+            [rt-clj.shape-protocol :as sh]
             [rt-clj.tuples :as t]))
-
-; ## Bounds
-
-(def local-bounds
-  (constantly {:min (t/point -1. -1. -1.)
-               :max (t/point 1. 1. 1.)}))
 
 ; ## Intersections
 
@@ -41,31 +35,25 @@
       [t-max t-min]
       [t-min t-max])))
 
-(def project
-  (juxt t/x t/y t/z))
-
-(defn local-intersect
-  [{:keys [local-bounds] :as cube}
-   {:keys [origin direction]}] ;; ray
-  (let [{:keys [min max]} (local-bounds cube)
-        [x-min y-min z-min] (project min)
-        [x-max y-max z-max] (project max)
-        [^double x-t-min ^double x-t-max] (check-axis (t/x origin) (t/x direction) x-min x-max)
-        [^double y-t-min ^double y-t-max] (check-axis (t/y origin) (t/y direction) y-min y-max)
-        [^double z-t-min ^double z-t-max] (check-axis (t/z origin) (t/z direction) z-min z-max)
+(defn- local-intersect
+  [{:keys [origin direction]} ;; ray
+   object]
+  (let [[^double x-t-min ^double x-t-max] (check-axis (t/x origin) (t/x direction) -1 1)
+        [^double y-t-min ^double y-t-max] (check-axis (t/y origin) (t/y direction) -1 1)
+        [^double z-t-min ^double z-t-max] (check-axis (t/z origin) (t/z direction) -1 1)
         t-min (clojure.core/max x-t-min y-t-min z-t-min)
         t-max (clojure.core/min x-t-max y-t-max z-t-max)]
     (if (> t-min t-max)
       []
-      [(i/intersection t-min cube)
-       (i/intersection t-max cube)])))
+      [(i/intersection t-min object)
+       (i/intersection t-max object)])))
 
 ; ## Normal
 
 ;  Each face of a cube is a plane with its own normal. This normal will be the same at every point on the corresponding face.
 
-(defn local-normal
-  [_ point _]
+(defn- local-normal
+  [point]
   (let [x-abs (Math/abs (t/x point))
         y-abs (Math/abs (t/y point))
         z-abs (Math/abs (t/z point))
@@ -81,5 +69,15 @@
 
 ; Two are aligned with the x axis, two with the y axis, and two with the z axis.
 
-(def cube
-  (partial sh/shape local-bounds local-intersect local-normal))
+(defrecord Cube []
+  sh/Shape
+  (local-bounds [_]
+    {:min (t/point -1. -1. -1.)
+     :max (t/point 1. 1. 1.)})
+  (local-intersect [_ ray object]
+    (local-intersect ray object))
+  (local-normal [_ point _]
+    (local-normal point)))
+
+(defn cube []
+  (->Cube))

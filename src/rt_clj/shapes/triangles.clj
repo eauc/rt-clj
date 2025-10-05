@@ -1,12 +1,10 @@
 ; # Triangles
 
-(ns rt-clj.triangles
+(ns rt-clj.shapes.triangles
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
   (:require [rt-clj.intersections :as i]
-            [rt-clj.matrices :as m]
-            [rt-clj.materials :as mr]
-            [rt-clj.shapes :as sh]
+            [rt-clj.shape-protocol :as sh]
             [rt-clj.tuples :as t]))
 
 ; ## Bounds
@@ -14,7 +12,7 @@
 (def project
   (juxt t/x t/y t/z))
 
-(defn local-bounds
+(defn- local-bounds
   [{:keys [p1 p2 p3]}]
   (let [[^double x1 ^double y1 ^double z1] (project p1)
         [^double x2 ^double y2 ^double z2] (project p2)
@@ -35,9 +33,10 @@
 
 ; An intersection record may have u and v properties, to help identify where on a triangle the intersection occurred, relative to the triangle’s corners.
 
-(defn local-intersect
-  [{:keys [p1 e1 e2] :as triangle}
-   {:keys [origin direction]}]
+(defn- local-intersect
+  [{:keys [p1 e1 e2]}
+   {:keys [origin direction]}
+   object]
   (let [dir><e2 (t/cross direction e2)
         d (t/dot e1 dir><e2)]
     (if (t/close? 0. d)
@@ -54,32 +53,35 @@
               []
               [(assoc (i/intersection
                        (* f (t/dot e2 origin><e1))
-                       triangle)
+                       object)
                       :u u :v v)])))))))
 
 ; ## Normal
 
 ; The triangle’s precomputed normal is used for every point on the triangle.
 
-(defn local-normal
-  [{:keys [normal]} _ _]
+(defn- local-normal
+  [{:keys [normal]}]
   normal)
 
 ; ## Creation
 
 ; We pre-compute 2 edges vectors and the normal vector at creation.
 
+(defrecord Triangle [p1 p2 p3 e1 e2 normal]
+  sh/Shape
+  (local-bounds [tri]
+    (local-bounds [tri]))
+  (local-intersect [tri ray object]
+    (local-intersect tri ray object))
+  (local-normal [tri _ _]
+    (local-normal tri)))
+
 (defn triangle
-  ([p1 p2 p3 material]
+  ([p1 p2 p3]
    (let [e1 (t/sub p2 p1)
          e2 (t/sub p3 p1)]
-     (-> (sh/shape local-bounds local-intersect local-normal (m/id 4) material)
-         (assoc
-          :p1 p1 :p2 p2 :p3 p3
-          :e1 e1 :e2 e2
-          :normal (t/norm (t/cross e2 e1))))))
-  ([p1 p2 p3]
-   (triangle p1 p2 p3 mr/default-material)))
+     (->Triangle p1 p2 p3 e1 e2 (t/norm (t/cross e2 e1))))))
 
 ; ## Smooth Triangles
 
@@ -87,22 +89,24 @@
 
 ; When computing the normal vector on a smooth triangle, use the intersection’s u and v properties to interpolate the normal.
 
-(defn smooth-local-normal
-  [{:keys [n1 n2 n3]} _ {:keys [^double u ^double v]}]
-  (t/add (t/add (t/mul n1 (- 1. u v))
-                (t/mul n2 u))
-         (t/mul n3 v)))
+(defn- smooth-local-normal
+  [{:keys [n1 n2 n3]} {:keys [^double u ^double v]}]
+  (-> (t/add (t/add (t/mul n1 (- 1. u v))
+                    (t/mul n2 u))
+             (t/mul n3 v))
+      t/norm))
+
+(defrecord SmoothTriangle [p1 p2 p3 e1 e2 n1 n2 n3]
+  sh/Shape
+  (local-bounds [tri]
+    (local-bounds tri))
+  (local-intersect [tri ray object]
+    (local-intersect tri ray object))
+  (local-normal [tri _ hit]
+    (smooth-local-normal tri hit)))
 
 (defn smooth-triangle
-  ([p1 p2 p3 n1 n2 n3 material]
+  ([p1 p2 p3 n1 n2 n3]
    (let [e1 (t/sub p2 p1)
          e2 (t/sub p3 p1)]
-     (-> (sh/shape local-bounds local-intersect smooth-local-normal (m/id 4) material)
-         (assoc
-          :p1 p1 :p2 p2 :p3 p3
-          :n1 n1 :n2 n2 :n3 n3
-          :e1 e1 :e2 e2))))
-  ([p1 p2 p3 n1 n2 n3]
-   (smooth-triangle p1 p2 p3
-                    n1 n2 n3
-                    mr/default-material)))
+     (->SmoothTriangle p1 p2 p3 e1 e2 n1 n2 n3))))

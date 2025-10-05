@@ -1,6 +1,7 @@
-(ns rt-clj.cubes-test
-  (:require [clojure.test :refer :all]
-            [rt-clj.cubes :refer :all]
+(ns rt-clj.shapes.cubes-test
+  (:require [clojure.test :refer [deftest are testing]]
+            [rt-clj.shapes.cubes :refer :all]
+            [rt-clj.shape-protocol :as sh]
             [rt-clj.rays :as r]
             [rt-clj.tuples :as t]))
 
@@ -9,7 +10,7 @@
   (testing "A ray intersects a cube"
     (are [origin direction t]
          (= t
-            (mapv :t (local-intersect (cube) (r/ray origin direction))))
+            (mapv :t (sh/local-intersect (cube) (r/ray origin direction) {})))
       (t/point 5. 0.5 0.) (t/vector -1. 0. 0.) [4. 6.]
       (t/point -5. 0.5 0.) (t/vector 1. 0. 0.) [4. 6.]
       (t/point 0.5 5. 0.) (t/vector 0. -1. 0.) [4. 6.]
@@ -21,7 +22,7 @@
   (testing "A ray misses a cube"
     (are [origin direction]
          (= []
-            (local-intersect (cube) (r/ray origin direction)))
+            (sh/local-intersect (cube) (r/ray origin direction) {}))
       (t/point -2. 0. 0.) (t/vector 0.2673 0.5345 0.8018)
       (t/point 0. -2. 0.) (t/vector 0.8018 0.2673 0.5345)
       (t/point 0. 0. -2.) (t/vector 0.5345 0.8018 0.2673)
@@ -32,7 +33,7 @@
   (testing "The normal on the surface of a cube"
     (are [point normal]
          (t/eq? normal
-                (local-normal (cube) point {}))
+                (sh/local-normal (cube) point {}))
       (t/point 1. 0.5 -0.8) (t/vector 1. 0. 0.)
       (t/point -1. -0.2 0.9) (t/vector -1. 0. 0.)
       (t/point -0.4 1. -0.1) (t/vector 0. 1. 0.)

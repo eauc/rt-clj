@@ -14,12 +14,9 @@
             [rt-clj.cameras :as cm]
             [rt-clj.canvas :as ca]
             [rt-clj.colors :as co]
-            [rt-clj.cylinders :as cy]
-            [rt-clj.groups :as gr]
             [rt-clj.lights :as li]
-            [rt-clj.materials :as mr]
             [rt-clj.matrices :as ma]
-            [rt-clj.spheres :as sp]
+            [rt-clj.objects :as os]
             [rt-clj.transformations :as tr]
             [rt-clj.tuples :as tu]
             [rt-clj.worlds :as wo])
@@ -31,29 +28,36 @@
 
 {:nextjournal.clerk/visibility {:code :show :result :hide}}
 (defn -main []
-  (let [mat (assoc mr/default-material
-                   :color (co/color 0.8 0.2 0.8))
-        cyl (assoc (cy/cylinder (tr/scaling 0.5 1. 0.5) mat)
-                   :minimum -1.
-                   :maximum 1.)
-        sph (sp/sphere (ma/mul (tr/translation 0. 1. 0)
-                               (tr/scaling 0.5 0.5 0.5)) mat)
-        grp-1 (fn grp-1 [^double n]
-                (gr/group (ma/mul (tr/rotation-z (* n (/ Math/PI 3.)))
-                                  (tr/translation 1.732050 0. 0.))
-                          [cyl sph]))
-        grp-0 (fn grp-0 [transform]
-                (gr/group transform [(grp-1 0.)
-                                     (grp-1 1.)
-                                     (grp-1 2.)
-                                     (grp-1 3.)
-                                     (grp-1 4.)
-                                     (grp-1 5.)]))
-        grps [(grp-0 (ma/id 4))
-              (grp-0 (ma/mul (tr/translation 2.5 0. 0.)
-                             (tr/rotation-x (* 3. (/ Math/PI 4.)))))
-              (grp-0 (ma/mul (tr/translation -2.5 0. 0.)
-                             (tr/rotation-x (/ Math/PI 4.))))]
+  (let [mat {:color (co/color 0.8 0.2 0.8)}
+        cyl (os/cylinder
+             -1. 1. false
+             mat
+             (tr/scaling 0.5 1. 0.5))
+        sph (os/sphere
+             mat
+             (->> (tr/scaling 0.5 0.5 0.5)
+                  (ma/mul (tr/translation 0. 1. 0))))
+        hex-side (fn hex-side [^double n]
+                   (os/group
+                    [cyl sph]
+                    mat
+                    (->> (tr/translation 1.732050 0. 0.)
+                         (ma/mul (tr/rotation-z (* n (/ Math/PI 3.)))))))
+        hex (fn hex [transform]
+              (os/group
+               [(hex-side 0.)
+                (hex-side 1.)
+                (hex-side 2.)
+                (hex-side 3.)
+                (hex-side 4.)
+                (hex-side 5.)]
+               mat
+               transform))
+        grps [(hex (ma/id 4))]
+              ; (hex (->> (tr/rotation-x (* 3. (/ Math/PI 4.)))
+              ;           (ma/mul (tr/translation 2.5 0. 0.))))
+              ; (hex (->> (tr/rotation-x (/ Math/PI 4.))
+              ;           (ma/mul (tr/translation -2.5 0. 0.))))]
         light (li/point-light (tu/point 10. 10. 10.) (co/color 1. 1. 1.))
         world (wo/world grps [light])
         view (tr/view (tu/point 5. 10. 6.)

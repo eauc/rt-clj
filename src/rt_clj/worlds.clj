@@ -7,9 +7,9 @@
             [rt-clj.intersections :as i]
             [rt-clj.lights :as l]
             [rt-clj.materials :as m]
+            [rt-clj.object-protocol :as o]
+            [rt-clj.objects :as os]
             [rt-clj.rays :as r]
-            [rt-clj.spheres :as s]
-            [rt-clj.shapes :as sh]
             [rt-clj.transformations :as tr]
             [rt-clj.tuples :as t]))
 
@@ -30,11 +30,14 @@
 ; - 1 light source at `[-10,10,-10]`
 
 (defn default-world []
-  (world [(-> (s/sphere) (assoc :material (-> m/default-material
-                                              (assoc :color (c/color 0.8 1.0 0.6))
-                                              (assoc :diffuse 0.7)
-                                              (assoc :specular 0.2))))
-          (s/sphere (tr/scaling 0.5 0.5 0.5))]
+  (world [(-> (os/sphere)
+              (os/with-material
+                {:color (c/color 0.8 1.0 0.6)
+                 :diffuse 0.7
+                 :specular 0.2}))
+          (-> (os/sphere)
+              (os/with-transform
+                (tr/scaling 0.5 0.5 0.5)))]
          [(l/point-light (t/point -10. 10. -10.) (c/color 1. 1. 1.))]))
 
 ; ## Intersections with rays
@@ -48,7 +51,7 @@
    (let [objs (if shadow? (:objects-with-shadow w) (:objects w))
          is (into
              []
-             (comp (mapcat #(sh/intersect % ray))
+             (comp (mapcat #(o/intersect % ray))
                    (filter #(or (not shadow?) (< 0 ^double (:t %)))))
              objs)]
      (vec (sort-by :t is))))

@@ -4,34 +4,26 @@
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
   (:require [rt-clj.rays :as r]
-            [rt-clj.shapes :as sh]
+            [rt-clj.object-protocol :as o]
             [rt-clj.tuples :as t]))
 
 ; ## Creation
 
 ; Intersections store the object hit and the distance from origin on the ray.
 
-(defn intersection [t object]
-  {:t t
-   :object object})
+(defrecord Intersection [t object u v])
+
+(defn intersection
+  ([t object u v]
+   (->Intersection t object u v))
+  ([t object]
+   (intersection t object 0 0)))
 
 (def intersections vector)
 
 ; ## Hit
 
 ; We can find a hit in a list of intersections. It's always the lowest non-negative intersection.
-
-(comment
-  (defn first-after [is after]
-    (let [c (count is)]
-      (loop [k 0
-             f-after nil]
-        (if (= k c)
-          f-after
-          (let [i (nth is k)]
-            (if (< after (:t i) (get f-after :t t/infinity))
-              (recur (+ k 1) i)
-              (recur (+ k 1) f-after))))))))
 
 (defn hit [is]
   (first (filter #(< 0. ^double (:t %)) is)))
@@ -75,7 +67,7 @@
 
 (defn prepare-hit [hit ray ints]
   (let [^"[D" point (r/pos ray (:t hit))
-        normalv' (sh/normal (:object hit) point hit)
+        normalv' (o/normal (:object hit) point hit)
         eyev (t/neg (:direction ray))
         inside? (< (t/dot normalv' eyev) 0)
         ^"[D" normalv (if inside? (t/neg normalv') normalv')

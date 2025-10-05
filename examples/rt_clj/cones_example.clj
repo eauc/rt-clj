@@ -14,14 +14,12 @@
             [rt-clj.cameras :as cm]
             [rt-clj.canvas :as ca]
             [rt-clj.colors :as co]
-            [rt-clj.cones :as cn]
             [rt-clj.lights :as li]
-            [rt-clj.materials :as mr]
             [rt-clj.matrices :as ma]
+            [rt-clj.objects :as os]
             [rt-clj.transformations :as tr]
             [rt-clj.tuples :as tu]
-            [rt-clj.worlds :as wo]
-            [rt-clj.planes :as pl])
+            [rt-clj.worlds :as wo])
   (:import java.lang.Math))
 
 (let [filename "examples/img/cones-example.png"]
@@ -30,39 +28,37 @@
 
 {:nextjournal.clerk/visibility {:code :show :result :hide}}
 (defn -main []
-  (let [f-m (assoc mr/default-material
-                   :color (co/color 0.2 0.2 0.2)
-                   :reflective 0.
-                   :transparency 1.
-                   :refractive-index 2.
-                   :shininess 300
-                   :shadow? false)
-        floor (pl/plane (ma/mul (tr/translation 0. 0. -1.75)
-                                (tr/rotation-x (/ Math/PI 2)))
-                        f-m)
-        w-m (assoc mr/default-material
-                   :color (co/color 0.1 0.1 0.1)
-                   :reflective 1.
-                   :shininess 300)
-        wall (pl/plane (tr/translation 0. -6. 0.)
-                       w-m)
-        cone-1 (assoc (cn/cone (ma/mul (tr/rotation-x (/ Math/PI 1.8))
-                                       (tr/scaling 0.3 1. 0.3))
-                               (assoc mr/default-material
-                                      :color (co/color 0.8 0.2 0.8)))
-                      :minimum -3.)
-        cone-2 (assoc (cn/cone (ma/mul (tr/rotation-x (/ Math/PI 1.8))
-                                       (tr/scaling 2. 1. 2.))
-                               (assoc mr/default-material
-                                      :color (co/color 0.2 0.8 0.8)))
-                      :minimum -2.5
-                      :maximum -1.5)
-        cone-3 (assoc (cn/cone (ma/mul (tr/rotation-x (/ Math/PI 1.8))
-                                       (tr/scaling 2.5 1. 2.5))
-                               (assoc mr/default-material
-                                      :color (co/color 0.8 0.8 0.2)))
-                      :minimum -2.
-                      :maximum -1.5)
+  (let [f-m {:color (co/color 0.2 0.2 0.2)
+             :reflective 0.
+             :transparency 1.
+             :refractive-index 2.
+             :shininess 300
+             :shadow? false}
+        floor (os/plane
+               f-m
+               (->> (tr/rotation-x (/ Math/PI 2))
+                    (ma/mul (tr/translation 0. 0. -1.75))))
+        w-m {:color (co/color 0.1 0.1 0.1)
+             :reflective 1.
+             :shininess 300}
+        wall (os/plane
+              w-m
+              (tr/translation 0. -6. 0.))
+        cone-1 (os/cone
+                -3. tu/infinity false
+                {:color (co/color 0.8 0.2 0.8)}
+                (->> (tr/scaling 0.3 1. 0.3)
+                     (ma/mul (tr/rotation-x (/ Math/PI 1.8)))))
+        cone-2 (os/cone
+                -2.5 -1.5 false
+                {:color (co/color 0.2 0.8 0.8)}
+                (->> (tr/scaling 2. 1. 2.)
+                     (ma/mul (tr/rotation-x (/ Math/PI 1.8)))))
+        cone-3 (os/cone
+                -2. -1.5 false
+                {:color (co/color 0.8 0.8 0.2)}
+                (->> (tr/scaling 2.5 1. 2.5)
+                     (ma/mul (tr/rotation-x (/ Math/PI 1.8)))))
         light-1 (li/point-light (tu/point 10. 10. 10.) (co/color 1. 1. 1.))
         world (wo/world [floor wall cone-1 cone-2 cone-3] [light-1])
         view (tr/view (tu/point 4. 8. 2.5)

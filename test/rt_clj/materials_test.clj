@@ -1,11 +1,11 @@
 (ns rt-clj.materials-test
   (:import java.lang.Math)
-  (:require [clojure.test :refer :all]
+  (:require [clojure.test :refer [deftest is testing]]
             [rt-clj.materials :refer :all]
             [rt-clj.colors :as c]
             [rt-clj.lights :as l]
+            [rt-clj.objects :as os]
             [rt-clj.patterns :as pt]
-            [rt-clj.spheres :as s]
             [rt-clj.tuples :as t]))
 
 (deftest materials-test
@@ -30,42 +30,42 @@
             normalv (t/vector 0. 0. -1.)
             light (l/point-light (t/point 0. 0. -10.) (c/color 1. 1. 1.))]
         (is (t/eq? (c/color 1.9 1.9 1.9)
-                   (lighting m (s/sphere) light position eyev normalv)))))
+                   (lighting m (os/sphere) light position eyev normalv)))))
 
     (testing "Lighting with the eye between light and surface, eye offset 45°"
       (let [eyev (t/vector 0. pi-4 (- 0 pi-4))
             normalv (t/vector 0. 0. -1.)
             light (l/point-light (t/point 0. 0. -10.) (c/color 1. 1. 1.))]
         (is (t/eq? (c/color 1. 1. 1.)
-                   (lighting m (s/sphere) light position eyev normalv)))))
+                   (lighting m (os/sphere) light position eyev normalv)))))
 
     (testing "Lighting with eye opposite surface, light offset 45°"
       (let [eyev (t/vector 0. 0. -1.)
             normalv (t/vector 0. 0. -1.)
             light (l/point-light (t/point 0. 10. -10.) (c/color 1. 1. 1.))]
         (is (t/eq? (c/color 0.7364 0.7364 0.7364)
-                   (lighting m (s/sphere) light position eyev normalv)))))
+                   (lighting m (os/sphere) light position eyev normalv)))))
 
     (testing "Lighting with eye in the path of the reflection vector"
       (let [eyev (t/vector 0. (- 0 pi-4) (- 0 pi-4))
             normalv (t/vector 0. 0. -1.)
             light (l/point-light (t/point 0. 10. -10.) (c/color 1. 1. 1.))]
         (is (t/eq? (c/color 1.6364 1.6364 1.6364)
-                   (lighting m (s/sphere) light position eyev normalv)))))
+                   (lighting m (os/sphere) light position eyev normalv)))))
 
     (testing "Lighting with the light behind the surface"
       (let [eyev (t/vector 0. 0. -1.)
             normalv (t/vector 0. 0. -1.)
             light (l/point-light (t/point 0. 0. 10.) (c/color 1. 1. 1.))]
         (is (t/eq? (c/color 0.1 0.1 0.1)
-                   (lighting m (s/sphere) light position eyev normalv)))))
+                   (lighting m (os/sphere) light position eyev normalv)))))
 
     (testing "Lighting with the surface in shadow"
       (let [eyev (t/vector 0. 0. -1.)
             normalv (t/vector 0. 0. -1.)
             light (l/point-light (t/point 0. 0. -10.) (c/color 1. 1. 1.))]
         (is (t/eq? (c/color 0.1 0.1 0.1)
-                   (lighting m (s/sphere) light position eyev normalv :in-shadow))))))
+                   (lighting m (os/sphere) light position eyev normalv :in-shadow))))))
 
   (testing "Lighting with a pattern applied"
     (let [mat (-> default-material
@@ -77,6 +77,6 @@
           normalv (t/vector 0. 0. -1.)
           light (l/point-light (t/point 0. 0. -10.) (c/color 1. 1. 1.))]
       (is (t/eq? c/white
-                 (lighting mat (s/sphere) light (t/point 0.9 0. 0.) eyev normalv false)))
+                 (lighting mat (os/sphere) light (t/point 0.9 0. 0.) eyev normalv false)))
       (is (t/eq? c/black
-                 (lighting mat (s/sphere) light (t/point 1.1 0. 0.) eyev normalv false))))))
+                 (lighting mat (os/sphere) light (t/point 1.1 0. 0.) eyev normalv false))))))

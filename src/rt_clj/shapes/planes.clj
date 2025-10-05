@@ -1,17 +1,11 @@
 ; # Planes
 
-(ns rt-clj.planes
+(ns rt-clj.shapes.planes
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
   (:require [rt-clj.intersections :as i]
-            [rt-clj.shapes :as sh]
+            [rt-clj.shape-protocol :as sh]
             [rt-clj.tuples :as t]))
-
-; ## Bounds
-
-(def local-bounds
-  (constantly {:min (t/point (- (double t/infinity)) (- (double t/epsilon)) (- (double t/infinity)))
-               :max (t/point t/infinity t/epsilon t/infinity)}))
 
 ; ## Intersections
 
@@ -23,22 +17,32 @@
 ; - the ray origin is above the plane.
 ; - the ray origin is below the plane.
 
-(defn local-intersect [p {:keys [origin direction]}]
+(defn- local-intersect [{:keys [origin direction]}, object]
   (if (t/close? 0. (t/y direction))
     []
     (let [t (- (/ (t/y origin) (t/y direction)))]
-      [(i/intersection t p)])))
+      [(i/intersection t object)])))
 
 ; ## Normal
 
 ; The local-normal of plane is always `[0 1 0]`.
 
-(defn local-normal [_ _ _]
+(defn- local-normal []
   (t/vector 0. 1. 0.))
 
 ; ## Creation
 
 ; Planes are records implementing Shape protocol.
 
-(def plane
-  (partial sh/shape local-bounds local-intersect local-normal))
+(defrecord Plane []
+  sh/Shape
+  (local-bounds [_]
+    {:min (t/point (- (double t/infinity)) (- (double t/epsilon)) (- (double t/infinity)))
+     :max (t/point t/infinity t/epsilon t/infinity)})
+  (local-intersect [_ ray object]
+    (local-intersect ray object))
+  (local-normal [_ _ _]
+    (local-normal)))
+
+(defn plane []
+  (->Plane))

@@ -1,10 +1,8 @@
 (ns rt-clj.obj-files-test
-  (:require [clojure.test :refer :all]
+  (:require [clojure.test :refer [deftest is testing]]
             [clojure.walk]
             [rt-clj.obj-files :refer :all]
-            [rt-clj.groups :as gr]
-            [rt-clj.materials :as mr]
-            [rt-clj.triangles :as tg]
+            [rt-clj.objects :as os]
             [rt-clj.tuples :as t]))
 
 (def vector-type (Class/forName "[D"))
@@ -15,7 +13,7 @@
   (clojure.walk/prewalk
    (fn [node]
      (cond
-       (map? node) (dissoc node :local-bounds)
+       ; (map? node) (dissoc node :local-bounds)
        (= (type node) vector-type) (into [] node)
        (= (type node) matrix-type) (mapv #(into [] %) node)
        :else node))
@@ -24,7 +22,7 @@
 (deftest obj-files-test
 
   (testing "Ignoring unrecognized lines"
-    (is (= (cmp-format {:group (assoc (gr/group) :material mr/default-material)
+    (is (= (cmp-format {:group (os/group [])
                         :normals []
                         :vertices []})
            (cmp-format (parse-lines ["There was a young lady named Bright"
@@ -63,14 +61,13 @@
                                "f 1 2 3"
                                "f 1 3 4"])]
       (is (= (cmp-format
-              (gr/with-children
-                (assoc (gr/group) :material mr/default-material)
-                [(tg/triangle (nth (:vertices result) 0)
-                              (nth (:vertices result) 1)
-                              (nth (:vertices result) 2))
-                 (tg/triangle (nth (:vertices result) 0)
-                              (nth (:vertices result) 2)
-                              (nth (:vertices result) 3))]))
+              (os/group
+               [(os/triangle (nth (:vertices result) 0)
+                             (nth (:vertices result) 1)
+                             (nth (:vertices result) 2))
+                (os/triangle (nth (:vertices result) 0)
+                             (nth (:vertices result) 2)
+                             (nth (:vertices result) 3))]))
              (cmp-format
               (:group result))))))
 
@@ -82,17 +79,16 @@
                                "v 0 2 0"
                                "f 1 2 3 4 5"])]
       (is (= (cmp-format
-              (gr/with-children
-                (assoc (gr/group) :material mr/default-material)
-                [(tg/triangle (nth (:vertices result) 0)
-                              (nth (:vertices result) 1)
-                              (nth (:vertices result) 2))
-                 (tg/triangle (nth (:vertices result) 0)
-                              (nth (:vertices result) 2)
-                              (nth (:vertices result) 3))
-                 (tg/triangle (nth (:vertices result) 0)
-                              (nth (:vertices result) 3)
-                              (nth (:vertices result) 4))]))
+              (os/group
+               [(os/triangle (nth (:vertices result) 0)
+                             (nth (:vertices result) 1)
+                             (nth (:vertices result) 2))
+                (os/triangle (nth (:vertices result) 0)
+                             (nth (:vertices result) 2)
+                             (nth (:vertices result) 3))
+                (os/triangle (nth (:vertices result) 0)
+                             (nth (:vertices result) 3)
+                             (nth (:vertices result) 4))]))
              (cmp-format
               (:group result))))))
 
@@ -106,20 +102,19 @@
                                "f 1//3 2//1 3//2"
                                "f 1/0/3 2/102/1 3/14/2"])]
       (is (= (cmp-format
-              (gr/with-children
-                (assoc (gr/group) :material mr/default-material)
-                [(tg/smooth-triangle (nth (:vertices result) 0)
-                                     (nth (:vertices result) 1)
-                                     (nth (:vertices result) 2)
-                                     (nth (:normals result) 2)
-                                     (nth (:normals result) 0)
-                                     (nth (:normals result) 1))
-                 (tg/smooth-triangle (nth (:vertices result) 0)
-                                     (nth (:vertices result) 1)
-                                     (nth (:vertices result) 2)
-                                     (nth (:normals result) 2)
-                                     (nth (:normals result) 0)
-                                     (nth (:normals result) 1))]))
+              (os/group
+               [(os/smooth-triangle (nth (:vertices result) 0)
+                                    (nth (:vertices result) 1)
+                                    (nth (:vertices result) 2)
+                                    (nth (:normals result) 2)
+                                    (nth (:normals result) 0)
+                                    (nth (:normals result) 1))
+                (os/smooth-triangle (nth (:vertices result) 0)
+                                    (nth (:vertices result) 1)
+                                    (nth (:vertices result) 2)
+                                    (nth (:normals result) 2)
+                                    (nth (:normals result) 0)
+                                    (nth (:normals result) 1))]))
              (cmp-format
               (:group result))))))
 
@@ -133,17 +128,16 @@
                                "g SecondGroup"
                                "f 1 3 4"])]
       (is (= (cmp-format
-              (gr/with-children
-                (assoc (gr/group) :material mr/default-material)
-                [(gr/with-children
-                   (assoc (gr/group) :name "FirstGroup")
-                   [(tg/triangle (nth (:vertices result) 0)
-                                 (nth (:vertices result) 1)
-                                 (nth (:vertices result) 2))])
-                 (gr/with-children
-                   (assoc (gr/group) :name "SecondGroup")
-                   [(tg/triangle (nth (:vertices result) 0)
-                                 (nth (:vertices result) 2)
-                                 (nth (:vertices result) 3))])]))
+              (os/group
+               [(-> (os/group
+                     [(os/triangle (nth (:vertices result) 0)
+                                  (nth (:vertices result) 1)
+                                  (nth (:vertices result) 2))])
+                    (assoc :name "FirstGroup"))
+                (-> (os/group
+                     [(os/triangle (nth (:vertices result) 0)
+                                   (nth (:vertices result) 2)
+                                   (nth (:vertices result) 3))])
+                    (assoc :name "SecondGroup"))]))
              (cmp-format
               (:group result)))))))

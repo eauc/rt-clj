@@ -1,11 +1,10 @@
 ; # CSG Shapes
 
-(ns rt-clj.csg-shapes
+(ns rt-clj.shapes.csg-shapes
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
-  (:require [rt-clj.groups :as gr]
-            [rt-clj.matrices :as m]
-            [rt-clj.shapes :as sh]))
+  (:require [rt-clj.object-protocol :as o]
+            [rt-clj.shape-protocol :as sh]))
 
 ; [[file:../samples/csg_spheres_example.png]]
 ;
@@ -46,7 +45,7 @@
   (or (and lhit (not inr))
       (and (not lhit) inl)))
 
-(defn includes?
+(defn- includes?
   [{:keys [left right children] :as parent} child]
   (cond
     (not (nil? children))
@@ -72,29 +71,28 @@
             inr' (if lhit inr (not inr))]
         (recur rest inl' inr' result')))))
 
-(defn local-intersect
+(defn- local-intersect
   [{:keys [left right] :as shape} ray]
   (filter-intersections
    shape
    (sort-by
     :t
-    (concat (sh/intersect left ray)
-            (sh/intersect right ray)))))
+    (concat (o/intersect left ray)
+            (o/intersect right ray)))))
 
 ; ## Creation
 
 ; A CSG shape is composed of an operation and two operand shapes.
 
-(defn csg
-  ([transform operation left right]
-   (let [local-bounds (constantly (gr/children-bounds [left right]))
-         shape (-> (sh/shape local-bounds local-intersect identity transform)
-                   (assoc
-                    :operation operation
-                    :left left
-                    :right right))]
-     (assoc shape
-            :left (assoc left :parent shape)
-            :right (assoc right :parent shape))))
+(defrecord CSGShape [operation left right]
+  sh/Shape
+  (local-bounds [_]
+    {})
+  (local-intersect [csg ray _]
+    (local-intersect csg ray))
+  (local-normal [_ _ _]
+    (throw (ex-info "We should never call local-normal on a CSG Shape." {}))))
+
+(defn csg-shape
   ([operation left right]
-   (csg (m/id 4) operation left right)))
+   (->CSGShape operation left right)))

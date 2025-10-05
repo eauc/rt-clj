@@ -10,9 +10,9 @@
             [rt-clj.intersections :as in]
             [rt-clj.lights :as li]
             [rt-clj.materials :as mr]
+            [rt-clj.object-protocol :as o]
+            [rt-clj.objects :as os]
             [rt-clj.rays :as ra]
-            [rt-clj.shapes :as sh]
-            [rt-clj.spheres :as sp]
             [rt-clj.transformations :as tr]
             [rt-clj.tuples :as tu]))
 
@@ -34,7 +34,8 @@
         l (li/point-light (tu/point 10. 10. -10.) (co/color 1. 1. 1.))
         m (-> mr/default-material
               (assoc :color (co/color 1. 0.2 1.)))
-        s (-> (sp/sphere (tr/scaling 1. 1. 0.5))
+        s (-> (-> (os/sphere) 
+                  (os/with-transform (tr/scaling 1. 1. 0.5)))
               (assoc :material m))
         e (tu/point 3. 0. 0.)
         h 512
@@ -50,11 +51,11 @@
                                          (+ -3. (* j pixel-step-h)))
                       ray-d (tu/norm (tu/sub screen-p e))
                       ray (ra/ray e ray-d)
-                      hit? (in/hit (sh/intersect s ray))]
+                      hit? (in/hit (o/intersect s ray))]
                   (if (nil? hit?)
                     miss-col
                     (let [position (ra/pos ray (:t hit?))
-                          normal (sh/normal s position hit?)]
+                          normal (o/normal s position hit?)]
                       (mr/lighting m s l position ray-d normal false)))))
         pixs (mapv (fn [i]
                      (mapv (fn [j]
