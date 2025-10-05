@@ -41,6 +41,8 @@
      :max (t/point t/infinity t/epsilon t/infinity)})
   (prepare-transform [shape _ _]
     shape)
+  (includes? [_ _]
+    false)
   (local-intersect [_ ray object]
     (local-intersect ray object))
   (local-normal [_ _ _]

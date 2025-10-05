@@ -81,6 +81,9 @@
     (assoc shape
            :left (o/prepare-transform left world->object object->world)
            :right (o/prepare-transform right world->object object->world)))
+  (includes? [{:keys [left right]} needle]
+    (or (o/includes? left needle)
+        (o/includes? right needle)))
   (local-intersect [csg ray _]
     (local-intersect csg ray))
   (local-normal [_ _ _]

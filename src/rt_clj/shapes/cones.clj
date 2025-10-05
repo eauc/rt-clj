@@ -116,6 +116,8 @@
     (local-bounds cne))
   (prepare-transform [shape _ _]
     shape)
+  (includes? [_ _]
+    false)
   (local-intersect [cne ray object]
     (local-intersect cne ray object))
   (local-normal [cne point _]

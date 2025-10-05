@@ -102,6 +102,8 @@
     (local-bounds tri))
   (prepare-transform [shape _ _]
     shape)
+  (includes? [_ _]
+    false)
   (local-intersect [tri ray object]
     (local-intersect tri ray object))
   (local-normal [tri _ hit]

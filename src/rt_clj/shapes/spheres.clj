@@ -52,6 +52,8 @@
      :max (t/point 1. 1. 1.)})
   (prepare-transform [shape _ _]
     shape)
+  (includes? [_ _]
+    false)
   (local-intersect [_ ray object]
     (local-intersect ray object))
   (local-normal [_ point _]

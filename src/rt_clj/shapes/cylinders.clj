@@ -111,6 +111,8 @@
     (local-bounds cyl))
   (prepare-transform [shape _ _]
     shape)
+  (includes? [_ _]
+    false)
   (local-intersect [cyl ray object]
     (local-intersect cyl ray object))
   (local-normal [cyl point _]

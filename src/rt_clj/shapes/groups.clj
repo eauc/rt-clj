@@ -47,6 +47,8 @@
        :max (t/point e e e)}))
   (prepare-transform [{:keys [children] :as shape} world->object object->world]
     (assoc shape :children (mapv #(o/prepare-transform % world->object object->world) children)))
+  (includes? [{:keys [children]} needle]
+    (some #(o/includes? % needle) children))
   (local-intersect [gr ray _]
     (local-intersect gr ray))
   (local-normal [_ _ _]

@@ -20,17 +20,10 @@
 
 (defn- includes?
   [object needle]
-  (let [{:keys [left right children]} (:shape object)]
+  (let [{:keys [shape]} object]
     (if (= object needle)
       true
-      (cond
-        (not (nil? children))
-        (some #(includes? % needle) children)
-        (not (nil? left))
-        (or (includes? left needle)
-            (includes? right needle))
-        :else
-        false))))
+      (sh/includes? shape object))))
 
 ; ## Intersections
 
