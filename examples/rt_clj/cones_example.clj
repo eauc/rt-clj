@@ -60,7 +60,8 @@
                 (->> (tr/scaling 2.5 1. 2.5)
                      (ma/mul (tr/rotation-x (/ Math/PI 1.8)))))
         light-1 (li/point-light (tu/point 10. 10. 10.) (co/color 1. 1. 1.))
-        world (wo/world [floor wall cone-1 cone-2 cone-3] [light-1])
+        world (wo/world {:objects [floor wall cone-1 cone-2 cone-3]
+                         :lights [light-1]})
         view (tr/view (tu/point 4. 8. 2.5)
                       (tu/point 0. 0. -1.5)
                       (tu/vector 0. 0. 1.))

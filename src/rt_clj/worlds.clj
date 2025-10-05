@@ -11,37 +11,17 @@
             [rt-clj.objects :as os]
             [rt-clj.rays :as r]
             [rt-clj.transformations :as tr]
-            [rt-clj.tuples :as t]))
+            [rt-clj.tuples :as t]
+            [rt-clj.world-protocol :as wp]))
 
-; ## Creation
-;
-; A world store all the objects and lights of a scene.
+(defn with-objects [w objects]
+  (assoc w
+         :objects objects
+         :objects-with-shadow (filter #(get-in % [:material :shadow?] true) objects)))
 
-(defn world
-  ([os ls]
-   {:objects os
-    :objects-with-shadow (filter #(get-in % [:material :shadow?] true) os)
-    :lights ls})
-  ([]
-   (world [] [])))
-
-; For testing purpose we can create a default world with:
-; - 2 spheres centered at origin with different radii.
-; - 1 light source at `[-10,10,-10]`
-
-(defn default-world []
-  (world [(-> (os/sphere)
-              (os/with-material
-                {:color (c/color 0.8 1.0 0.6)
-                 :diffuse 0.7
-                 :specular 0.2}))
-          (-> (os/sphere)
-              (os/with-transform
-                (tr/scaling 0.5 0.5 0.5)))]
-         [(l/point-light (t/point -10. 10. -10.) (c/color 1. 1. 1.))]))
-
-(defn prepare [{:keys [objects] :as world}]
-  (assoc world :objects (mapv #(o/prepare %) objects)))
+(defn prepare [{:keys [objects] :as w}]
+  (let [objects' (mapv #(o/prepare %) objects)]
+    (with-objects w objects')))
 
 ; ## Intersections with rays
 ;
@@ -67,8 +47,8 @@
 
 ; We can compute this by casting a ray from the point to the light, and see if there is a hit closer than the distance to the light.
 
-(defn shadowed? [w p l]
-  (let [p->l (t/sub (:position l) p)
+(defn shadowed? [w p l-p]
+  (let [p->l (t/sub l-p p)
         d (t/mag p->l)
         ray (r/ray p (t/norm p->l))
         hits (intersect w ray :shadow)
@@ -139,13 +119,13 @@
         {:keys [material]} object
         {:keys [^double reflective ^double transparency]} material
         {:keys [point eyev normalv]} comps
-        surface (reduce
-                 #(c/add %1 (m/lighting material object
-                                        %2
-                                        point eyev normalv
-                                        (shadowed? w point %2)))
-                 (c/color 0. 0. 0.)
-                 (:lights w))
+        lights (mapv
+                #(l/shadowed % w point)
+                (:lights w))
+        surface (m/lighting
+                 material object
+                 (:ambient w) lights
+                 point eyev normalv)
         reflected (reflected-color w hit comps remaining)
         [refracted ^double reflectance] (refracted-color w hit comps remaining)]
     (if (and (> reflective 0.) (> transparency 0.))
@@ -168,3 +148,40 @@
     (if (not hit?)
       c/black
       (shade-hit w hit? (i/prepare-hit hit? ray xs) remaining))))
+
+; ## Creation
+;
+; A world store all the objects and lights of a scene.
+
+(defrecord World 
+  [objects objects-with-shadow ambient lights]
+  wp/World
+  (shadowed? [world point light-position]
+    (shadowed? world point light-position)))
+
+(defn world
+  ([{:keys [objects ambient lights]
+     :or {objects []
+          ambient c/white
+          lights []}}]
+   (-> (map->World
+        {:ambient ambient
+         :lights lights})
+       (with-objects objects)))
+  ([]
+   (world {})))
+
+; For testing purpose we can create a default world with:
+; - 2 spheres centered at origin with different radii.
+; - 1 light source at `[-10,10,-10]`
+
+(defn default-world []
+  (world {:objects [(-> (os/sphere)
+                        (os/with-material
+                          {:color (c/color 0.8 1.0 0.6)
+                           :diffuse 0.7
+                           :specular 0.2}))
+                    (-> (os/sphere)
+                        (os/with-transform
+                          (tr/scaling 0.5 0.5 0.5)))]
+          :lights [(l/point-light (t/point -10. 10. -10.) (c/color 1. 1. 1.))]}))

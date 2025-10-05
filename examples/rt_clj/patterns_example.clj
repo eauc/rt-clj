@@ -58,7 +58,8 @@
                (ma/mul (tr/translation 0. 0. -10.)
                        (tr/rotation-x (/ Math/PI 2))))
         light (li/point-light (tu/point 10. 10. 10.) (co/color 1. 1. 1.))
-        world (wo/world [floor sphere] [light])
+        world (wo/world {:objects [floor sphere]
+                         :lights [light]})
         view (tr/view (tu/point 7. 10. 5.)
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))
@@ -83,7 +84,8 @@
                (ma/mul (tr/translation 0. 0. -10.)
                        (tr/rotation-x (/ Math/PI 2))))
         light (li/point-light (tu/point 10. 10. 10.) (co/color 1. 1. 1.))
-        world (wo/world [floor sphere] [light])
+        world (wo/world {:objects [floor sphere]
+                         :lights [light]})
         view (tr/view (tu/point 7. 10. 5.)
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))
@@ -105,7 +107,8 @@
                material
                (ma/mul (tr/translation 0. 0. -10.)
                        (tr/rotation-x (/ Math/PI 2))))
-        world (wo/world [floor sphere] [light])
+        world (wo/world {:objects [floor sphere]
+                         :lights [light]})
         view (tr/view (tu/point 12. 7. 5.)
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))
@@ -126,7 +129,8 @@
                (ma/mul (tr/translation 0. 0. -10.)
                        (tr/rotation-x (/ Math/PI 2))))
         light (li/point-light (tu/point 10. 10. 10.) (co/color 1. 1. 1.))
-        world (wo/world [floor sphere] [light])
+        world (wo/world {:objects [floor sphere]
+                         :lights [light]})
         view (tr/view (tu/point 12. 7. 5.)
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))

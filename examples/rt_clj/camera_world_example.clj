@@ -62,9 +62,9 @@
               (->> (tr/scaling 0.33 0.33 0.33)
                    (ma/mul (tr/translation -1.5 0.33 -0.75))))
         light (li/point-light (tu/point -10. 10. -10.) (co/color 1. 1. 1.))
-        world (wo/world [floor left-wall right-wall
-                         middle left right]
-                        [light])
+        world (wo/world {:objects [floor left-wall right-wall
+                                   middle left right]
+                         :lights [light]})
         view (tr/view (tu/point 0. 1.5 -5.)
                       (tu/point 0. 1. 0.)
                       (tu/vector 0. 1. 0.))

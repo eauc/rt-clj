@@ -39,27 +39,36 @@
 ; When a point is in the shadow of a light source, only the ambient component is used for lighting.
 
 (defn lighting
-  ([material object light position eyev normalv in-shadow?]
+  ([material object
+    ambient-light lights
+    position eyev normalv]
    (let [{:keys [color pattern ambient ^double diffuse shininess ^double specular]} material
          color (if pattern (pt/pattern-at-shape pattern object position) color)
-         effective-color (c/dot color (:intensity light))
-         ambient (c/mul effective-color ambient)]
-     (if in-shadow?
-       ambient
-       (let [lightv (t/norm (t/sub (:position light) position))
-             light-dot-normal (t/dot lightv normalv)
-             inside? (> 0 light-dot-normal)]
-         (if inside?
-           ambient
-           (let [diffuse (c/mul effective-color (* diffuse light-dot-normal))
-                 reflectv (t/reflect (t/sub t/zerov lightv) normalv)
-                 reflect-dot-eyev' (t/dot reflectv eyev)
-                 reflect-dot-eyev (Math/pow reflect-dot-eyev' shininess)
-                 amb-dif (c/add ambient diffuse)
-                 specular? (< 0 reflect-dot-eyev)]
-             (if-not specular?
-               amb-dif
-               (let [specular (c/mul (:intensity light) (* reflect-dot-eyev specular))]
-                 (c/add amb-dif specular)))))))))
-  ([material object light position eyev normalv]
-   (lighting material object light position eyev normalv nil)))
+         effective-color (c/dot color ambient-light)
+         ambient-color (c/mul effective-color ambient)
+         [diffuse-color specular-color]
+         (loop [[light & ls] lights
+                diffuse-color c/black
+                specular-color c/black]
+           (if (nil? light)
+             [diffuse-color specular-color]
+             (let [lightv (t/norm (t/sub (:position light) position))
+                   light-dot-normal (t/dot lightv normalv)
+                   inside? (> 0 light-dot-normal)]
+               (if inside?
+                 (recur ls diffuse-color specular-color)
+                 (let [effective-color (c/dot color (:intensity light))
+                       diffuse-color' (c/mul effective-color (* diffuse light-dot-normal))
+                       diffuse-color (c/add diffuse-color diffuse-color')
+                       reflectv (t/reflect (t/sub t/zerov lightv) normalv)
+                       reflect-dot-eyev' (t/dot reflectv eyev)
+                       reflect-dot-eyev (Math/pow reflect-dot-eyev' shininess)
+                       specular? (< 0 reflect-dot-eyev)]
+                   (if-not specular?
+                     (recur ls diffuse-color specular-color)
+                     (let [specular-color' (c/mul (:intensity light) (* reflect-dot-eyev specular))
+                           specular-color (c/add specular-color specular-color')]
+                       (recur ls diffuse-color specular-color))))))))]
+     (-> ambient-color
+         (c/add diffuse-color)
+         (c/add specular-color)))))

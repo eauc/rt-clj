@@ -45,7 +45,8 @@
                    :shininess 300}))
         light (li/point-light (tu/point 50. 100. 100.)
                               (co/color 1. 1. 1.))
-        world (wo/world [floor (:group teapot)] [light])
+        world (wo/world {:objects [floor (:group teapot)]
+                         :lights [light]})
         view (tr/view (tu/point 20. 40. 20.)
                       (tu/point 0. 0. 5.)
                       (tu/vector 0. 0. 1.))
@@ -78,7 +79,8 @@
                    :shininess 300}))
         light (li/point-light (tu/point 50. 100. 100.)
                               (co/color 1. 1. 1.))
-        world (wo/world [floor (:group teapot)] [light])
+        world (wo/world {:objects [floor (:group teapot)] 
+                         :lights [light]})
         view (tr/view (tu/point 20. 40. 20.)
                       (tu/point 0. 0. 5.)
                       (tu/vector 0. 0. 1.))

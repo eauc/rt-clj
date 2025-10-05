@@ -55,8 +55,8 @@
 
   (testing "Shading an intersection in shadow"
     (let [s2 (-> (os/sphere) (os/with-transform (tr/translation 0. 0. 10.)))
-          w (world [(os/sphere) s2]
-                   [(l/point-light (t/point 0. 0. -10.) (c/color 1. 1. 1.))])
+          w (world {:objects [(os/sphere) s2]
+                    :lights [(l/point-light (t/point 0. 0. -10.) (c/color 1. 1. 1.))]})
           ray (r/ray (t/point 0. 0. 5.) (t/vector 0. 0. 1.))
           int (i/intersection 4. s2)
           comps (i/prepare-hit int ray [int])]
@@ -98,28 +98,28 @@
   (let [light (get-in (default-world) [:lights 0])]
     (testing "There is no shadow when nothing is collinear with point and light"
       (is (= false
-             (shadowed? (default-world) (t/point 0. 10. 0.) light))))
+             (shadowed? (default-world) (t/point 0. 10. 0.) (:position light)))))
 
     (testing "The shadow when an object is between the point and the light"
       (is (= true
-             (shadowed? (default-world) (t/point 10. -10. 10.) light))))
+             (shadowed? (default-world) (t/point 10. -10. 10.) (:position light)))))
 
     (testing "Objects can opt out of shadow calculation"
       (is (= false
              (shadowed? (world
-                         (-> (:objects (default-world))
-                             (assoc-in [0 :material :shadow?] false)
-                             (assoc-in [1 :material :shadow?] false))
-                         (:lights (default-world)))
-                        (t/point 10. -10. 10.) light))))
+                         {:objects (-> (:objects (default-world))
+                                      (assoc-in [0 :material :shadow?] false)
+                                      (assoc-in [1 :material :shadow?] false))
+                          :lights (:lights (default-world))})
+                        (t/point 10. -10. 10.) (:position light)))))
 
     (testing "There is no shadow when an object is behind the light"
       (is (= false
-             (shadowed? (default-world) (t/point -20. 20. -20.) light))))
+             (shadowed? (default-world) (t/point -20. 20. -20.) (:position light)))))
 
     (testing "There is no shadow when an object is behind the point"
       (is (= false
-             (shadowed? (default-world) (t/point -2. 2. -2.) light)))))
+             (shadowed? (default-world) (t/point -2. 2. -2.) (:position light))))))
 
   (testing "The reflected color for a nonreflective material"
     (let [w (-> (default-world) (assoc-in [:objects 1 :material :ambient] 1.))
@@ -221,10 +221,10 @@
                        :color (c/color 1. 0. 0.))
                 (tr/translation 0. -3.5 -0.5))
           w (world
-             (-> (:objects (default-world))
-                 (conj floor)
-                 (conj ball))
-             (:lights (default-world)))
+             {:objects (-> (:objects (default-world))
+                          (conj floor)
+                          (conj ball))
+              :lights (:lights (default-world))})
           sqrt2_on2 (/ (Math/sqrt 2.) 2.)
           ray (r/ray (t/point 0. 0. -3.) (t/vector 0. (- sqrt2_on2) sqrt2_on2))
           xs [(i/intersection (Math/sqrt 2.) floor)]
@@ -246,10 +246,10 @@
                        :ambient 0.5)
                 (tr/translation 0. -3.5 -0.5))
           w (world
-             (-> (:objects (default-world))
-                 (conj floor)
-                 (conj ball))
-             (:lights (default-world)))
+             {:objects (-> (:objects (default-world))
+                           (conj floor)
+                           (conj ball))
+              :lights (:lights (default-world))})
           ray (r/ray (t/point 0. 0. -3.) (t/vector 0. (- sqrt2_on2) sqrt2_on2))
           xs [(i/intersection (Math/sqrt 2.) floor)]
           comps (i/prepare-hit (first xs) ray xs)]

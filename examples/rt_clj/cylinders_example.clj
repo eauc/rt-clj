@@ -59,7 +59,8 @@
                (->> (tr/scaling 3. 1. 3.)
                     (ma/mul (tr/rotation-x (/ Math/PI 1.8)))))
         light-1 (li/point-light (tu/point 10. 10. 10.) (co/color 1. 1. 1.))
-        world (wo/world [floor wall cyl-1 cyl-2 cyl-3] [light-1])
+        world (wo/world {:objects [floor wall cyl-1 cyl-2 cyl-3]
+                         :lights [light-1]})
         view (tr/view (tu/point 4. 8. 4.)
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))

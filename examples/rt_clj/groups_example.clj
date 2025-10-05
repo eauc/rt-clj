@@ -59,7 +59,8 @@
               (hex (->> (tr/rotation-x (/ Math/PI 4.))
                         (ma/mul (tr/translation -2.5 0. 0.))))]
         light (li/point-light (tu/point 0. 0. 10.) (co/color 1. 1. 1.))
-        world (wo/world grps [light])
+        world (wo/world {:objects grps
+                         :lights [light]})
         view (tr/view (tu/point 0. 0. 10.)
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 1. 0.))

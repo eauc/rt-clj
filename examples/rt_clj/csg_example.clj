@@ -46,7 +46,8 @@
         shape (os/csg-shape :difference sp1 sp2)
         light (li/point-light (tu/point 5. 10. 10.)
                               (co/color 1. 1. 1.))
-        world (wo/world [shape] [light])
+        world (wo/world {:objects [shape]
+                         :lights [light]})
         view (tr/view (tu/point 8. 12. 4.)
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))
@@ -84,7 +85,8 @@
                 :difference cube cyl))
         light (li/point-light (tu/point 5. 10. 10.)
                               (co/color 1. 1. 1.))
-        world (wo/world [shape] [light])
+        world (wo/world {:objects [shape]
+                         :lights [light]})
         view (tr/view (tu/point 8. 12. 4.)
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))
@@ -168,7 +170,8 @@
                            (co/color 0.6 0.6 0.6))
         l2 (li/point-light (tu/point -5. 10. 10.)
                            (co/color 0.4 0.4 0.4))
-        world (wo/world [walls cub mirror lens] [l1 l2])
+        world (wo/world {:objects [walls cub mirror lens]
+                         :lights [l1 l2]})
         view (tr/view (tu/point 8. 10. 4.)
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))

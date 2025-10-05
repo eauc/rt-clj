@@ -71,8 +71,8 @@
                   (->> (tr/scaling 2. 2. 2.)
                        (ma/mul (tr/translation 2.25 -0.75 2.25))))
         light (li/point-light (tu/point 10. 10. 10.) (co/color 1. 1. 1.))
-        world (wo/world [floor wall-1 wall-2
-                         sphere-1 sphere-2] [light])
+        world (wo/world {:objects [floor wall-1 wall-2 sphere-1 sphere-2] 
+                         :lights [light]})
         view (tr/view (tu/point 5. 10. 5.)
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))
@@ -115,8 +115,8 @@
                   (->> (tr/scaling 2. 2. 2.)
                        (ma/mul (tr/translation 2. -1. 2.))))
         light (li/point-light (tu/point 10. 10. 10.) (co/color 1. 1. 1.))
-        world (wo/world [floor wall-1 wall-2
-                         sphere-1 sphere-2] [light])
+        world (wo/world {:objects [floor wall-1 wall-2 sphere-1 sphere-2] 
+                         :lights [light]})
         view (tr/view (tu/point 5. 10. 5.)
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))
@@ -152,7 +152,8 @@
                 :shadow? false}
                (tr/rotation-x (/ Math/PI 2)))
         light-1 (li/point-light (tu/point 10. 10. 10.) (co/color 1. 1. 1.))
-        world (wo/world [floor cyl plane] [light-1])
+        world (wo/world {:objects [floor cyl plane] 
+                         :lights [light-1]})
         view (tr/view (tu/point 0. 10. 3.)
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))

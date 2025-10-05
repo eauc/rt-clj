@@ -51,7 +51,8 @@
 
         light (li/point-light (tu/point 20. 7. 20.)
                               (co/color 1. 1. 1.))
-        world (wo/world [floor room cube] [light])
+        world (wo/world {:objects [floor room cube]
+                         :lights [light]})
         view (tr/view (tu/point 7. 9. 5.)
                       (tu/point 0. 0. 0.)
                       (tu/vector 0. 0. 1.))

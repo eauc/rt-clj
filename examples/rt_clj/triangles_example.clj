@@ -53,8 +53,8 @@
                (os/with-material {:color (co/color 0.2 0.9 0.2)}))
         light (li/point-light (tu/point 5. 10. 10.)
                               (co/color 1. 1. 1.))
-        world (wo/world [floor wall
-                         t1 t2 t3 t4] [light])
+        world (wo/world {:objects [floor wall t1 t2 t3 t4] 
+                         :lights [light]})
         view (tr/view (tu/point 2. 4. 2.)
                       (tu/point 0. 0. 1.)
                       (tu/vector 0. 0. 1.))
