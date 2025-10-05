@@ -9,6 +9,7 @@
 (defprotocol Shape
   (local-bounds [shape] "Returns the bounds of the shape in local space")
   (prepare-bounds [shape] "Recursively precompute the boundaries of child objects")
+  (prepare-material [shape parent-material] "Recursively applies material to child objects")
   (prepare-transform [shape world->object object->world] "Recursively precompute transformations matrices")
   (includes? [shape needle] "Checks if shape (or its children) includes the needle")
   (local-intersect [shape ray object] "intersects the shape with a ray in local space")

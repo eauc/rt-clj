@@ -113,6 +113,8 @@
     (local-bounds cyl))
   (prepare-bounds [shape]
     shape)
+  (prepare-material [shape _]
+    shape)
   (prepare-transform [shape _ _]
     shape)
   (includes? [_ _]

@@ -76,6 +76,8 @@
     (local-bounds [tri]))
   (prepare-bounds [shape]
     shape)
+  (prepare-material [shape _]
+    shape)
   (prepare-transform [shape _ _]
     shape)
   (includes? [_ _]
@@ -108,6 +110,10 @@
   sh/Shape
   (local-bounds [tri]
     (local-bounds tri))
+  (prepare-bounds [shape]
+    shape)
+  (prepare-material [shape _]
+    shape)
   (prepare-transform [shape _ _]
     shape)
   (includes? [_ _]

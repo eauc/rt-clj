@@ -39,9 +39,9 @@
 ; When a point is in the shadow of a light source, only the ambient component is used for lighting.
 
 (defn lighting
-  ([{:keys [color pattern ambient ^double diffuse shininess ^double specular]}
-    object light position eyev normalv in-shadow?]
-   (let [color (if pattern (pt/pattern-at-shape pattern object position) color)
+  ([material object light position eyev normalv in-shadow?]
+   (let [{:keys [color pattern ambient ^double diffuse shininess ^double specular]} material
+         color (if pattern (pt/pattern-at-shape pattern object position) color)
          effective-color (c/dot color (:intensity light))
          ambient (c/mul effective-color ambient)]
      (if in-shadow?

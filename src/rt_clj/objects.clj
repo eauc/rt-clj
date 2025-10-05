@@ -26,12 +26,21 @@
       true
       (sh/includes? shape object))))
 
+(defn- prepare-material
+  ([object parent-material]
+   (let [material' (or (:material object) parent-material)]
+     (assoc object
+            :material material'
+            :shape (sh/prepare-material (:shape object) material'))))
+  ([object]
+   (prepare-material object mr/default-material)))
+
 ; ## Intersections
 
 (defn- prepare-bounds
   [{:keys [shape] :as object}]
   (let [shape' (sh/prepare-bounds shape)]
-    (assoc object 
+    (assoc object
            :shape shape'
            :bounds (sh/local-bounds shape'))))
 
@@ -80,10 +89,13 @@
   o/WorldObject
   (prepare-bounds [object]
     (prepare-bounds object))
+  (prepare-material [object parent-material]
+    (prepare-material object parent-material))
   (prepare-transform [object world->object object->world]
     (prepare-transform object world->object object->world))
   (prepare [object]
     (prepare-bounds object)
+    (prepare-material object)
     (prepare-transform object))
   (includes? [object needle]
     (includes? object needle))

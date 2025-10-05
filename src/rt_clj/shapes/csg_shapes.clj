@@ -84,6 +84,10 @@
     (assoc shape
            :left (o/prepare-bounds left)
            :right (o/prepare-bounds right)))
+  (prepare-material [{:keys [left right] :as shape} parent-material]
+    (assoc shape
+           :left (o/prepare-material left parent-material)
+           :right (o/prepare-material right parent-material)))
   (prepare-transform [{:keys [left right] :as shape} world->object object->world]
     (assoc shape
            :left (o/prepare-transform left world->object object->world)

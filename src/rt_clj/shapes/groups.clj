@@ -48,6 +48,8 @@
       (bd/merge bs)))
   (prepare-bounds [{:keys [children] :as shape}]
     (assoc shape :children (mapv o/prepare-bounds children)))
+  (prepare-material [{:keys [children] :as shape} parent-material]
+    (assoc shape :children (mapv #(o/prepare-material % parent-material) children)))
   (prepare-transform [{:keys [children] :as shape} world->object object->world]
     (assoc shape :children (mapv #(o/prepare-transform % world->object object->world) children)))
   (includes? [{:keys [children]} needle]
