@@ -5,6 +5,7 @@
    :nextjournal.clerk/toc true}
   (:import java.lang.Math)
   (:require [clojure.core.reducers :as cr]
+            [clj-progress.core :as pg]
             [rt-clj.matrices :as m]
             [rt-clj.rays :as r]
             [rt-clj.tuples :as t]
@@ -64,23 +65,28 @@
 (defn render
   ([{:keys [^long hsize ^long vsize] :as cam}
     world
-    {:keys [parallel?] :or {parallel? false}}]
+    {:keys [parallel?] :or {parallel? true}}]
    (let [world (w/prepare world)]
-     (if parallel?
-       (cr/fold
-        (int (/ vsize 8))
-        (fn combinef
-          ([] [])
-          ([a b] (concat a b)))
-        (fn reducef
-          ([] [])
-          ([cs y]
-           (conj cs (mapv #(w/color world (pixel-ray cam % y) default-depth)
-                          (vec (range hsize))))))
-        (vec (range vsize)))
-       (mapv (fn [y]
-               (mapv #(w/color world (pixel-ray cam % y) default-depth)
-                     (range hsize)))
-             (range vsize)))))
+     (pg/init "Rendering" vsize)
+     (let [image (if parallel?
+                   (cr/fold
+                    (int (/ vsize 8))
+                    (fn combinef
+                      ([] [])
+                      ([a b] (concat a b)))
+                    (fn reducef
+                      ([] [])
+                      ([cs y]
+                       (pg/tick)
+                       (conj cs (mapv #(w/color world (pixel-ray cam % y) default-depth)
+                                      (vec (range hsize))))))
+                    (vec (range vsize)))
+                   (mapv (fn [y]
+                           (pg/tick)
+                           (mapv #(w/color world (pixel-ray cam % y) default-depth)
+                                 (range hsize)))
+                         (range vsize)))]
+       (pg/done)
+       image)))
   ([cam world]
    (render cam world {})))
