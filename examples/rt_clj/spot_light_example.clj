@@ -4,7 +4,7 @@
 ; (set! *warn-on-reflection* true)
 ; (set! *unchecked-math* :warn-on-boxed)
 
-(ns rt-clj.multi-lights-example
+(ns rt-clj.spot-light-example
   {:nextjournal.clerk/visibility {:code :hide :result :show}}
   (:require [clojure.java.io :as io]
             [clojure.string]
@@ -32,13 +32,16 @@
         sphere (os/sphere
                 nil
                 (tr/translation 0. 1. 0.))
-        lights [(li/spot-light (tu/sub tu/origin (tu/point 3. 5. 0.)) (/ Math/PI 8) 0.3 (tu/point 3. 5. 0.) (co/color 1. 0. 0.))
-                (li/spot-light (tu/sub tu/origin (tu/point 3. 5. -5.)) (/ Math/PI 8) 0.3 (tu/point 3. 5. -5.) (co/color 0. 1. 0.))
-                (li/spot-light (tu/sub tu/origin (tu/point 3. 5. 5.)) (/ Math/PI 8) 0.3 (tu/point 3. 5. 5.) (co/color 0. 0. 1.))]
+        light-origin (tu/point 3. 5. -2.)
+        lights [(li/spot-light
+                 (tu/sub tu/origin light-origin)
+                 (/ Math/PI 8)
+                 0.3
+                 light-origin co/white)]
         world (wo/world {:objects [floor sphere]
                          :lights lights})
-        view (tr/view (tu/point 5. 3. 0.)
-                      (tu/point 0. 1. 0.)
+        view (tr/view (tu/point 6. 3. 0.)
+                      (tu/point 0. 0. 0.)
                       (tu/vector 0. 1. 0.))
         resolution 4
         cam (cm/camera {:hsize (* resolution 150)
@@ -52,7 +55,7 @@
     ;  (clojure.string/join "\n" (ca/ppm-rows (cm/render cam-crit world))))
     ;; print the PPM file
     (spit
-     "./examples/img/multi-lights-example.ppm"
+     "./examples/img/spot-light-example.ppm"
      (prof/profile
       ; {:event :alloc}
       (clojure.string/join "\n" (ca/ppm-rows (cm/render cam world)))))))

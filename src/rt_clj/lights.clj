@@ -6,7 +6,8 @@
   (:require [rt-clj.colors :as co]
             [rt-clj.light-protocol :as lp]
             [rt-clj.lights.point-light :as pl]
-            [rt-clj.lights.sphere-light :as sl]))
+            [rt-clj.lights.sphere-light :as sl]
+            [rt-clj.lights.spot-light :as sp]))
 
 ; ## Creation
 
@@ -22,6 +23,9 @@
 
 (defn sphere-light [radius position intensity]
   (light (sl/sphere-light radius) position intensity))
+
+(defn spot-light [direction width fade-factor position intensity]
+  (light (sp/spot-light direction width fade-factor) position intensity))
 
 (defn shadowed
   [light world point]
