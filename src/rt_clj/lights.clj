@@ -3,19 +3,28 @@
 (ns rt-clj.lights
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
-  (:require [rt-clj.colors :as c]
-            [rt-clj.world-protocol :as wp]))
+  (:require [rt-clj.colors :as co]
+            [rt-clj.light-protocol :as lp]
+            [rt-clj.lights.point-light :as pl]
+            [rt-clj.lights.sphere-light :as sl]))
 
 ; ## Creation
 
 ; A point light has a position and intensity
 
+(defrecord Light [shape position intensity])
+
+(defn light [shape position intensity]
+  (->Light shape position intensity))
+
 (defn point-light [position intensity]
-  {:position position
-   :intensity intensity})
+  (light (pl/point-light) position intensity))
+
+(defn sphere-light [radius position intensity]
+  (light (sl/sphere-light radius) position intensity))
 
 (defn shadowed
   [light world point]
-  (if (wp/shadowed? world point (:position light))
-    (assoc light :intensity c/black)
-    light))
+  (let [{:keys [shape intensity position]} light
+        f (lp/shadow-factor shape world point position)]
+    (assoc light :intensity (co/mul intensity f))))

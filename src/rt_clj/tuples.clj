@@ -57,6 +57,17 @@
 
 (def zerov (vector 0. 0. 0.))
 
+(defn- dv
+  [radius]
+  (- (* (rand) 2 radius) radius))
+
+(defn rand-vector
+  [magnitude]
+  (let [dx (dv magnitude)
+        dy (dv magnitude)
+        dz (dv magnitude)]
+    (vector dx dy dz)))
+
 ; ## Basic operations
 
 ; We need to define close equality for 2 floating-point scalars.

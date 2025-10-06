@@ -34,9 +34,9 @@
   
   (testing "Average"
     (is (t/eq? (color 0.5 0.5 0.5)
-               (t/pprint (avg [(color 1. 1. 1.)
-                               (color 0. 0. 0.)]))))
+               (avg [(color 1. 1. 1.)
+                     (color 0. 0. 0.)])))
     (is (t/eq? (color 0.333333 0.333333 0.333333)
-               (t/pprint (avg [(color 1. 0. 0.)
-                               (color 0. 1. 0.)
-                               (color 0. 0. 1.)]))))))
+               (avg [(color 1. 0. 0.)
+                     (color 0. 1. 0.)
+                     (color 0. 0. 1.)])))))
