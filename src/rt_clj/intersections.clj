@@ -66,20 +66,14 @@
 ; To avoid acne syndrome, the computation should slightly displace the hit points (by epsilon) toward the outside/inside of the object.
 
 (defn prepare-hit [hit ray ints]
-  (let [^"[D" point (r/pos ray (:t hit))
+  (let [point (r/pos ray (:t hit))
         normalv' (o/normal (:object hit) point hit)
         eyev (t/neg (:direction ray))
         inside? (< (t/dot normalv' eyev) 0)
-        ^"[D" normalv (if inside? (t/neg normalv') normalv')
+        normalv (if inside? (t/neg normalv') normalv')
         n (refractive-indices hit ints)]
-    {:point (let [p (aclone point)]
-              (dotimes [k (alength p)]
-                (aset p k (+ (aget point k) (* (double t/epsilon) (aget normalv k)))))
-              p)
-     :under-point (let [p (aclone point)]
-                    (dotimes [k (alength p)]
-                      (aset p k (- (aget point k) (* (double t/epsilon) (aget normalv k)))))
-                    p)
+    {:point (t/add point (t/mul normalv t/epsilon))
+     :under-point (t/sub point (t/mul normalv t/epsilon))
      :eyev eyev
      :n n
      :normalv normalv

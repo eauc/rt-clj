@@ -60,14 +60,10 @@
 
 (defrecord Gradient [a b-a transform inverse-t]
   pt/Pattern
-  (pattern-at [{:keys [^"[D" a ^"[D" b-a]} p]
-    (let [sz (alength a)
-          ^"[D" r (make-array Double/TYPE sz)
-          x (t/x p)
+  (pattern-at [{:keys [a b-a]} p]
+    (let [x (t/x p)
           x' (- x (Math/floor x))]
-      (dotimes [k sz]
-        (aset r k (+ (aget a k) (* (aget b-a k) x'))))
-      r)))
+      (col/add a (col/mul b-a x')))))
 
 (defn gradient
   ([a b transform]

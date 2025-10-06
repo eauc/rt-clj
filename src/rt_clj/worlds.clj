@@ -95,7 +95,7 @@
       [c/black 1.]
       (let [{:keys [normalv eyev under-point n]} comps
             [^double n1 ^double n2] n
-            n-ratio (/ n1 n2)
+            n-ratio ^double (/ n1 n2)
             cos-i (t/dot eyev normalv)
             sin-t-square (* n-ratio n-ratio (- 1 (* cos-i cos-i)))]
         (if (< 1 sin-t-square)
@@ -105,7 +105,7 @@
                                  (t/mul eyev n-ratio))
                 refract-ray (r/ray under-point direction)
                 cos (if (> n1 n2) cos-t cos-i)
-                r0 (Math/pow (/ (- n1 n2) (+ n1 n2)) 2.)]
+                r0 ^double (Math/pow (/ (- n1 n2) (+ n1 n2)) 2.)]
             [(c/mul (color world refract-ray (dec remaining))
                     transparency)
              (+ r0 (* (- 1. r0) (Math/pow (- 1. cos) 5)))]))))))

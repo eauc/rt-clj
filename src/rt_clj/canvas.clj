@@ -66,11 +66,11 @@
 (defn ppm-clamp ^double [^double v]
   (min 1. (max 0. v)))
 
-(defn ppm-color [^"[D" col]
+(defn ppm-color [col]
   (st/join
    " "
-   (for [k (range (dec (alength col)))]
-     (Math/round (+ 0.49 (* 255. (ppm-clamp (aget col k))))))))
+   (for [k (range 3)]
+     (Math/round (+ 0.49 (* 255. (ppm-clamp (nth col k))))))))
 
 (defn ppm-data-row [row]
   (let [raw (st/join " " (map ppm-color row))]

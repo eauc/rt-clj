@@ -1,23 +1,12 @@
 (ns rt-clj.obj-files-test
   (:require [clojure.test :refer [deftest is testing]]
-            [clojure.walk]
             [rt-clj.obj-files :refer :all]
             [rt-clj.objects :as os]
             [rt-clj.tuples :as t]))
 
-(def vector-type (Class/forName "[D"))
-(def matrix-type (Class/forName "[[D"))
-
 (defn cmp-format
   [data]
-  (clojure.walk/prewalk
-   (fn [node]
-     (cond
-       ; (map? node) (dissoc node :local-bounds)
-       (= (type node) vector-type) (into [] node)
-       (= (type node) matrix-type) (mapv #(into [] %) node)
-       :else node))
-   data))
+  data)
 
 (deftest obj-files-test
 

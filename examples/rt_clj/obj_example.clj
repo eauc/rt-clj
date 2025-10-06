@@ -54,7 +54,8 @@
         cam (cm/camera {:hsize (* resolution 150)
                         :vsize (* resolution 100)
                         :fov (/ Math/PI 3)
-                        :transform view})]
+                        :transform view
+                        :parallel-depth 8})]
         ; cam-crit (cm/camera 1 1 (/ Math/PI 3) view)]
     ; (println "Start profiling...")
     ; (criterium/quick-bench
@@ -88,8 +89,9 @@
         cam (cm/camera {:hsize (* resolution 150)
                         :vsize (* resolution 100)
                         :fov (/ Math/PI 3)
-                        :transform view})]
+                        :transform view
+                        :parallel-depth 8})]
     (spit "./examples/img/obj-teapot-example.ppm"
           (clojure.string/join
            "\n"
-           (ca/ppm-rows (cm/render cam world {:depth 2}))))))
+           (ca/ppm-rows (cm/render cam world))))))

@@ -1,3 +1,6 @@
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* :warn-on-boxed)
+
 (ns user
   (:require [clojure.tools.namespace.repl :refer [refresh]]
             [clojure.spec.alpha :as s]

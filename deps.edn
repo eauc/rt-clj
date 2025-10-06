@@ -1,7 +1,8 @@
 {:paths ["src"]
  :deps {org.clojure/clojure {:mvn/version "1.12.0"}
         expound/expound {:mvn/version "0.7.2"}
-        intervox/clj-progress {:mvn/version "0.2.1"}}
+        intervox/clj-progress {:mvn/version "0.2.1"}
+        generateme/fastmath {:mvn/version "2.4.0"}}
 
  :aliases {:dev {:extra-paths ["dev" "examples" "test"]
                  :jvm-opts ["-Xss8m"                          ;; increase stack size

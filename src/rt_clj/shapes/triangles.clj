@@ -10,14 +10,11 @@
 
 ; ## Bounds
 
-(def project
-  (juxt t/x t/y t/z))
-
 (defn- local-bounds
   [{:keys [p1 p2 p3]}]
-  (let [[^double x1 ^double y1 ^double z1] (project p1)
-        [^double x2 ^double y2 ^double z2] (project p2)
-        [^double x3 ^double y3 ^double z3] (project p3)]
+  (let [[^double x1 ^double y1 ^double z1] p1
+        [^double x2 ^double y2 ^double z2] p2
+        [^double x3 ^double y3 ^double z3] p3]
     (bd/bounds
      (t/point (min x1 x2 x3) (min y1 y2 y3) (min z1 z2 z3))
      (t/point (max x1 x2 x3) (max y1 y2 y3) (max z1 z2 z3)))))
@@ -73,7 +70,7 @@
 (defrecord Triangle [p1 p2 p3 e1 e2 normal]
   sh/Shape
   (local-bounds [tri]
-    (local-bounds [tri]))
+    (local-bounds tri))
   (prepare-bounds [shape]
     shape)
   (prepare-material [shape _]

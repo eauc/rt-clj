@@ -1,7 +1,7 @@
 (ns rt-clj.tuples-test
   (:import java.lang.Math)
   (:refer-clojure :exclude [vector vector?])
-  (:require [clojure.test :refer :all]
+  (:require [clojure.test :refer [deftest is testing]]
             [rt-clj.tuples :refer :all]))
 
 (deftest tuples-test

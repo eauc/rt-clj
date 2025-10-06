@@ -4,7 +4,8 @@
   {:nextjournal.clerk/visibility {:result :hide}
    :nextjournal.clerk/toc true}
   (:refer-clojure :exclude [vector vector?])
-  (:require [clojure.pprint :as pp]))
+  (:require [clojure.pprint :as pp]
+            [fastmath.vector :as fv]))
 
 ; ## Creation
 
@@ -14,26 +15,26 @@
 
 (defn tuple
   ([x y z w]
-   (double-array [x y z w]))
+   (fv/vec4 x y z w))
   ([x y z]
    (tuple x y z 0.)))
 
-(defn pprint ^"[D" [^"[D" t]
+(defn pprint [t]
   (print "T")
-  (pp/pprint (into [] t))
+  (pp/pprint t)
   t)
 
-(defn x ^double [^"[D" v]
-  (aget v 0))
+(defn x ^double [v]
+  (get v 0))
 
-(defn y ^double [^"[D" v]
-  (aget v 1))
+(defn y ^double [v]
+  (get v 1))
 
-(defn z ^double [^"[D" v]
-  (aget v 2))
+(defn z ^double [v]
+  (get v 2))
 
-(defn w ^double [^"[D" v]
-  (aget v 3))
+(defn w ^double [v]
+  (get v 3))
 
 (defn point? [tup]
   (= 1.0 (w tup)))
@@ -49,9 +50,8 @@
 (defn vector [x y z]
   (tuple x y z 0.0))
 
-(defn to-vector! ^"[D" [^"[D" t]
-  (aset t 3 0.)
-  t)
+(defn to-vector! [t]
+  (assoc t 3 0.))
 
 (def origin (point 0. 0. 0.))
 
@@ -79,58 +79,38 @@
   10e300)
 
 (defn close? [^double a ^double b]
-  (> (double epsilon) (Math/abs (- a b))))
+  (> (double ^double epsilon) (Math/abs (- a b))))
 
 ; Then we need close equality of 2 tuples.
 
-(defn eq? [^"[D" a ^"[D" b]
-  (every? true? (map close? a b)))
+(defn eq? [a b]
+  (fv/delta-eq a b epsilon))
 
 ; Tuples support basic addition & substraction.
 
-(defn add [^"[D" v ^"[D" w]
-  (let [r (aclone v)]
-    (dotimes [i 4]
-      (aset r i (+ (aget v i) (aget w i))))
-    r))
+(defn add [v w]
+  (fv/add v w))
 
-(defn sub [^"[D" v ^"[D" w]
-  (let [r (aclone v)]
-    (dotimes [i 4]
-      (aset r i (- (aget v i) (aget w i))))
-    r))
+(defn sub [v w]
+  (fv/sub v w))
 
 ; Vectors can be negated, multiplied and divided by scalars.
 
-(defn neg [^"[D" v]
-  (let [r (aclone v)]
-    (dotimes [i (alength v)]
-      (aset r i (- 0. (aget v i))))
-    r))
+(defn neg [v]
+  (fv/mult v -1.))
 
-(defn mul [^"[D" v ^double s]
-  (let [r (aclone v)]
-    (dotimes [i 4]
-      (aset r i (* (aget v i) s)))
-    r))
+(defn mul [v s]
+  (fv/mult v s))
 
-(defn div [^"[D" v ^double s]
-  (let [r (aclone v)]
-    (dotimes [i 4]
-      (aset r i (/ (aget v i) s)))
-    r))
+(defn div [v s]
+  (fv/div v s))
 
 ; We can get the dot and cross products of vectors.
 
-(defn dot ^double [^"[D" v ^"[D" w]
-  (loop [i 0
-         sum 0.]
-    (if (= 4 i)
-      sum
-      (recur (inc i)
-             (+ sum (* (aget v i) (aget w i)))))))
+(defn dot ^double [v w]
+  (fv/dot v w))
 
-(defn cross [^"[D" v ^"[D" w]
+(defn cross [v w]
   (vector (- (* (y v) (z w))
              (* (y w) (z v)))
           (- (* (z v) (x w))
@@ -141,20 +121,17 @@
 ; We can get the magnitude of a vector.
 
 (defn mag ^double [v]
-  (Math/sqrt (dot v v)))
+  (fv/mag v))
 
 ; We can normalize a vector.
 
 (defn norm [v]
-  (div v (mag v)))
+  (fv/normalize v))
 
 ; ## Reflection
 
 ; Vectors can be reflected on a surface defined by a normal.
 
-(defn reflect [^"[D" in ^"[D" normal]
-  (let [r (aclone in)
-        k (* 2 (dot in normal))]
-    (dotimes [i (alength in)]
-      (aset r i (- (aget in i) (* k (aget normal i)))))
-    r))
+(defn reflect [in normal]
+  (let [k (* 2 (dot in normal))]
+    (sub in (mul normal k))))
