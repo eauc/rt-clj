@@ -27,9 +27,12 @@
            [hsize
             vsize
             fov
+            focal-length
+            aperture
             default-depth
             parallel-depth
             oversampling
+            blur-oversampling
             transform
             inverse-t
             half-width
@@ -37,12 +40,15 @@
             pixel-size])
 
 (defn camera
-  ([{:keys [^long hsize ^long vsize ^double fov transform default-depth parallel-depth oversampling] :as options
+  ([{:keys [^long hsize ^long vsize ^double fov focal-length aperture transform default-depth parallel-depth blur-oversampling oversampling] :as options
      :or {transform (m/id 4)
+          focal-length 1.
+          aperture 0.
           default-depth 4
           parallel-depth 0
-          oversampling 1}}]
-   (let [half-view (Math/tan (/ fov 2.))
+          oversampling 1
+          blur-oversampling 1}}]
+   (let [half-view (* (Math/tan (/ fov 2.)) focal-length)
          aspect (double (/ hsize vsize))
          half-width (if (>= aspect 1.) half-view (* half-view aspect))
          half-height (if (>= aspect 1.) (/ half-view aspect) half-view)
@@ -53,9 +59,12 @@
        {:hsize hsize
         :vsize vsize
         :fov fov
+        :focal-length focal-length
+        :aperture aperture
         :default-depth default-depth
         :parallel-depth parallel-depth
         :oversampling oversampling
+        :blur-oversampling blur-oversampling
         :transform transform
         :inverse-t (m/inverse transform)
         :half-width half-width
@@ -70,20 +79,30 @@
 ; - the ray's origin is the world origin.
 ; - the ray's direction is the vector from the world-origin to the world-pixel.
 
+(defn ray-for-coordinates
+  [{:keys [inverse-t focal-length aperture blur-oversampling]} x y]
+  (let [world-pixel (m/mul-t inverse-t (t/point x y (- focal-length)))
+        aperture (* focal-length aperture)]
+    (for [_ (range blur-oversampling)]
+      (let [dv (if (< 1 blur-oversampling)
+                 (t/vector (t/rand-dv aperture)
+                           (t/rand-dv aperture)
+                           0.)
+                 (t/vector 0. 0. 0.))
+            world-origin (m/mul-t inverse-t (t/add t/origin dv))
+            direction (t/norm (t/sub world-pixel world-origin))]
+        (r/ray world-origin direction)))))
+
 (defn pixel-rays
-  [{:keys [^double half-width ^double half-height ^double pixel-size inverse-t oversampling]} ^double px ^double py]
+  [{:keys [^double half-width ^double half-height ^double pixel-size oversampling] :as cam} ^double px ^double py]
   (let [offset (/ 1. oversampling)
         start-offset (/ offset 2.)
         cam-xys (for [i (range oversampling)
                       j (range oversampling)]
                   (vector
                    (- half-width (* (+ px (* i offset) start-offset) pixel-size))
-                   (- half-height (* (+ py (* j offset) start-offset) pixel-size))))
-        world-pixels (mapv (fn [[x y]] (m/mul-t inverse-t (t/point x y -1.)))
-                           cam-xys)
-        world-origin (m/mul-t inverse-t t/origin)
-        directions (mapv #(t/norm (t/sub % world-origin)) world-pixels)]
-    (mapv #(r/ray world-origin %) directions)))
+                   (- half-height (* (+ py (* j offset) start-offset) pixel-size))))]
+    (mapcat (fn [[x y]] (ray-for-coordinates cam x y)) cam-xys)))
 
 ; ## World
 

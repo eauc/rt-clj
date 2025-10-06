@@ -57,15 +57,15 @@
 
 (def zerov (vector 0. 0. 0.))
 
-(defn- dv
+(defn rand-dv
   [radius]
   (- (* (rand) 2 radius) radius))
 
 (defn rand-vector
   [magnitude]
-  (let [dx (dv magnitude)
-        dy (dv magnitude)
-        dz (dv magnitude)]
+  (let [dx (rand-dv magnitude)
+        dy (rand-dv magnitude)
+        dz (rand-dv magnitude)]
     (vector dx dy dz)))
 
 ; ## Basic operations
