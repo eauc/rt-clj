@@ -26,6 +26,8 @@
                                    :paths ["examples/rt_clj/**" "src/**"]
                                    :watch-paths ["examples/rt_clj" "src"]}}
 
+           :serve-prof {:exec-fn user/serve-profiler}
+
            :repl {:extra-deps {nrepl/nrepl {:mvn/version "0.9.0"}
                                cider/cider-nrepl {:mvn/version "0.57.0"}
                                refactor-nrepl/refactor-nrepl {:mvn/version "3.11.0"}}

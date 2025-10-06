@@ -30,6 +30,9 @@
                 (println "Starting REPL with dev deps")
                 (apply shell ["clojure" "-M:dev:repl"]))}
 
+  serve-prof {:doc "Serve profiler UI"
+              :task (shell "clojure" "-X:dev:serve-prof")}
+
   test {:doc "Run tests"
         :task (do
                 (println "Running tests with args:" *command-line-args*)

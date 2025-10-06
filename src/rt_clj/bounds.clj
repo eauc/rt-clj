@@ -14,7 +14,7 @@
 
 (def infinite
   (bounds
-   (t/point (- t/infinity) (- t/infinity) (- t/infinity))
+   (t/point (- ^double t/infinity) (- ^double t/infinity) (- ^double t/infinity))
    (t/point t/infinity t/infinity t/infinity)))
 
 (def default

@@ -11,8 +11,9 @@
            (let [pos (tu/add light-position (-> (tu/rand-vector 1.) (tu/norm) (tu/mul radius)))]
              (if (wp/shadowed? world point pos) 0. 1.)))
          (range lp/light-oversampling))
-        (reduce +))
-   lp/light-oversampling))
+        (reduce +)
+        (double))
+   (double lp/light-oversampling)))
 
 (defrecord SphereLight [radius]
   lp/Light

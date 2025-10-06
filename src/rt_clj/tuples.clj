@@ -58,8 +58,8 @@
 (def zerov (vector 0. 0. 0.))
 
 (defn rand-dv
-  [radius]
-  (- (* (rand) 2 radius) radius))
+  [^double radius]
+  (- (* ^double (rand) 2. radius) radius))
 
 (defn rand-vector
   [magnitude]

@@ -68,6 +68,8 @@
         cam (cm/camera {:hsize (* resolution 150)
                         :vsize (* resolution 100)
                         :fov (/ Math/PI 3)
+                        :oversampling 4
+                        :parallel-depth 4
                         :transform view})]
         ; cam-crit (cm/camera 1 1 (/ Math/PI 3) view)]
     ; (println "Start profiling...")

@@ -37,12 +37,12 @@
       (aset r i (* (aget v i) (aget w i))))
     r))
 
-(defn avg [colors]
+(defn avg ^"[D" [colors]
   (let [n (count colors)
-        r (aclone (first colors))]
+        r (aclone ^"[D" (first colors))]
     (dotimes [i (dec n)]
       (dotimes [j 3]
-        (aset r j (+ (aget r j) (aget (nth colors (inc i)) j)))))
+        (aset r j (+ (aget r j) (aget ^"[D" (nth colors (inc i)) j)))))
     (dotimes [j 3]
       (aset r j (/ (aget r j) n)))
     r))

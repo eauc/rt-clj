@@ -21,7 +21,7 @@
   test-plan)
 
 (defn serve-profiler
-  []
+  [_]
   (prof/serve-ui 8080))
 
 (comment

@@ -5,7 +5,7 @@
             [rt-clj.world-protocol :as wp]))
 
 (defn- shadowed
-  [{:keys [direction full-width width fade-width]} world point light-position]
+  [{:keys [direction ^double full-width ^double width ^double fade-width]} world point light-position]
   (if (wp/shadowed? world point light-position)
     0.
     (let [light->point (-> (tu/sub point light-position) tu/norm)
@@ -25,7 +25,7 @@
   (lp/shadow-factor [shape world point light-position]
     (shadowed shape world point light-position)))
 
-(defn spot-light [direction full-width fade-factor]
+(defn spot-light [direction ^double full-width ^double fade-factor]
   (->SpotLight
    (tu/norm direction)
    full-width

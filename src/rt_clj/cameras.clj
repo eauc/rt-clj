@@ -40,7 +40,17 @@
             pixel-size])
 
 (defn camera
-  ([{:keys [^long hsize ^long vsize ^double fov focal-length aperture transform default-depth parallel-depth blur-oversampling oversampling] :as options
+  ([{:keys [^long hsize
+            ^long vsize
+            ^double fov
+            ^double focal-length
+            ^double aperture
+            transform
+            default-depth
+            parallel-depth
+            blur-oversampling
+            oversampling]
+     :as options
      :or {transform (m/id 4)
           focal-length 1.
           aperture 0.
@@ -80,7 +90,7 @@
 ; - the ray's direction is the vector from the world-origin to the world-pixel.
 
 (defn ray-for-coordinates
-  [{:keys [inverse-t focal-length aperture blur-oversampling]} x y]
+  [{:keys [inverse-t ^double focal-length ^double aperture ^int blur-oversampling]} x y]
   (let [world-pixel (m/mul-t inverse-t (t/point x y (- focal-length)))
         aperture (* focal-length aperture)]
     (for [_ (range blur-oversampling)]
@@ -94,11 +104,11 @@
         (r/ray world-origin direction)))))
 
 (defn pixel-rays
-  [{:keys [^double half-width ^double half-height ^double pixel-size oversampling] :as cam} ^double px ^double py]
+  [{:keys [^double half-width ^double half-height ^double pixel-size ^int oversampling] :as cam} ^double px ^double py]
   (let [offset (/ 1. oversampling)
         start-offset (/ offset 2.)
-        cam-xys (for [i (range oversampling)
-                      j (range oversampling)]
+        cam-xys (for [^int i (range oversampling)
+                      ^int j (range oversampling)]
                   (vector
                    (- half-width (* (+ px (* i offset) start-offset) pixel-size))
                    (- half-height (* (+ py (* j offset) start-offset) pixel-size))))]
@@ -121,7 +131,7 @@
     (mapv #(render-pixel cam world % y) (range hsize))))
 
 (defn render
-  ([{:keys [^long vsize parallel-depth] :as cam} world]
+  ([{:keys [^long vsize ^int parallel-depth] :as cam} world]
    (let [world (w/prepare world)
          parallel? (< 0 parallel-depth)]
      (pg/init "Rendering" vsize)

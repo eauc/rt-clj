@@ -48,7 +48,7 @@
         view (tr/view (-> (tu/point 0. 1. 0.) (tu/add (-> (tu/vector 1. 0.1 0.) (tu/mul 4.))))
                       (tu/point 0. 1. 0.)
                       (tu/vector 0. 1. 0.))
-        resolution 4
+        resolution 8
         cam (cm/camera {:hsize (* resolution 150)
                         :vsize (* resolution 100)
                         :fov (/ Math/PI 2.)
