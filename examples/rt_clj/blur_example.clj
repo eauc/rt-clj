@@ -36,12 +36,12 @@
              {:color (co/color 1. 0. 0.)}
              (tr/translation 0. 1.5 0.))
         green (os/sphere
-                {:color (co/color 0. 1. 0.)}
-                (-> (tr/translation 2. 1. 1.)
-                    (ma/mul (tr/scaling 0.5 0.5 0.5))))
+               {:color (co/color 0. 1. 0.)}
+               (-> (tr/translation 2. 1. 1.)
+                   (ma/mul (tr/scaling 0.5 0.5 0.5))))
         blue (os/sphere
-               {:color (co/color 0. 0. 1.)}
-               (tr/translation -3. 1.5 -4.))
+              {:color (co/color 0. 0. 1.)}
+              (tr/translation -3. 1.5 -4.))
         lights [(li/point-light (tu/point 5. 5. 0.) co/white)]
         world (wo/world {:objects [floor red green blue]
                          :lights lights})
@@ -49,17 +49,22 @@
                       (tu/point 0. 1. 0.)
                       (tu/vector 0. 1. 0.))
         resolution 8
-        cam (cm/camera {:hsize (* resolution 150)
-                        :vsize (* resolution 100)
-                        :fov (/ Math/PI 2.)
-                        :focal-length 4.
-                        :aperture 0.02
-                        :transform view
-                        :oversampling 2
-                        :blur-oversampling 4
-                        :parallel-depth 8})]
-        ; cam-crit (cm/camera 1 1 (/ Math/PI 3) view)]
-    ; (println "Start profiling...")
+        cam-options {:fov (/ Math/PI 2.)
+                     :focal-length 4.
+                     :aperture 0.02
+                     :transform view
+                     :oversampling 2
+                     :blur-oversampling 4}
+        cam (cm/camera (merge
+                         cam-options
+                         {:hsize (* resolution 150)
+                          :vsize (* resolution 100)}))]
+    ;     cam-crit (cm/camera (merge
+    ;                           cam-options
+    ;                           {:hsize 1
+    ;                            :vsize 1
+    ;                            :progress? false}))]
+    ; (println "Benchmarking started...")
     ; (criterium/quick-bench
     ;  (clojure.string/join "\n" (ca/ppm-rows (cm/render cam-crit world))))
     ;; print the PPM file

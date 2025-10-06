@@ -37,7 +37,8 @@
             inverse-t
             half-width
             half-height
-            pixel-size])
+            pixel-size
+            progress?])
 
 (defn camera
   ([{:keys [^long hsize
@@ -49,7 +50,8 @@
             default-depth
             parallel-depth
             blur-oversampling
-            oversampling]
+            oversampling
+            progress?]
      :as options
      :or {transform (m/id 4)
           focal-length 1.
@@ -57,7 +59,8 @@
           default-depth 4
           parallel-depth 0
           oversampling 1
-          blur-oversampling 1}}]
+          blur-oversampling 1
+          progress? true}}]
    (let [half-view (* (Math/tan (/ fov 2.)) focal-length)
          aspect (double (/ hsize vsize))
          half-width (if (>= aspect 1.) half-view (* half-view aspect))
@@ -79,7 +82,8 @@
         :inverse-t (m/inverse transform)
         :half-width half-width
         :half-height half-height
-        :pixel-size pixel-size})))))
+        :pixel-size pixel-size
+        :progress? progress?})))))
 
 ; ## Rays
 
@@ -131,10 +135,10 @@
     (mapv #(render-pixel cam world % y) (range hsize))))
 
 (defn render
-  ([{:keys [^long vsize ^int parallel-depth] :as cam} world]
+  ([{:keys [^long vsize ^int parallel-depth progress?] :as cam} world]
    (let [world (w/prepare world)
          parallel? (< 0 parallel-depth)]
-     (pg/init "Rendering" vsize)
+     (when progress? (pg/init "Rendering" vsize))
      (let [image (if parallel?
                    (cr/fold
                     (int (/ vsize parallel-depth))
@@ -144,12 +148,12 @@
                     (fn reducef
                       ([] [])
                       ([cs y]
-                       (pg/tick)
+                       (when progress? (pg/tick))
                        (conj cs (render-line cam world y))))
                     (vec (range vsize)))
                    (mapv (fn [y]
-                           (pg/tick)
+                           (when progress? (pg/tick))
                            (render-line cam world y))
                          (range vsize)))]
-       (pg/done)
+       (when progress? (pg/done))
        image))))
